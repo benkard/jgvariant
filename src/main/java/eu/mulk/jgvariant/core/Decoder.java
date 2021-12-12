@@ -30,6 +30,25 @@ import org.jetbrains.annotations.Nullable;
  * <p>Use the {@code of*} family of constructor methods to acquire a suitable {@link Decoder} for
  * the type you wish to decode.
  *
+ * <p><strong>Example</strong>
+ *
+ * <p>To parse a GVariant of type {@code "a(si)"}, which is an array of pairs of {@link String} and
+ * {@code int}, you can use the following code:
+ *
+ * <pre>{@code
+ * record ExampleRecord(Value.Str s, Value.Int32 i) {}
+ *
+ * var decoder =
+ *   Decoder.ofArray(
+ *     Decoder.ofStructure(
+ *       ExampleRecord.class,
+ *       Decoder.ofStr(UTF_8),
+ *       Decoder.ofInt32().withByteOrder(LITTLE_ENDIAN)));
+ *
+ * byte[] bytes = ...;
+ * Value.Array<Value.Structure<ExampleRecord>> example = decoder.decode(ByteBuffer.wrap(bytes));
+ * }</pre>
+ *
  * @param <T> the type that the {@link Decoder} can decode.
  */
 @SuppressWarnings("java:S1610")
@@ -52,6 +71,12 @@ public abstract class Decoder<T extends Value> {
     return fixedSize() != null;
   }
 
+  /**
+   * Switches the input {@link ByteBuffer} to a given {@link ByteOrder} before reading from it.
+   *
+   * @param byteOrder the byte order to use.
+   * @return a new, decorated {@link Decoder}.
+   */
   public Decoder<T> withByteOrder(ByteOrder byteOrder) {
     var delegate = this;
 
@@ -74,6 +99,13 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for an {@link Array} type.
+   *
+   * @param elementDecoder a {@link Decoder} for the elements of the array.
+   * @param <U> the element type.
+   * @return a new {@link Decoder}.
+   */
   public static <U extends Value> Decoder<Array<U>> ofArray(Decoder<U> elementDecoder) {
     return new Decoder<>() {
       @Override
@@ -138,6 +170,13 @@ public abstract class Decoder<T extends Value> {
     return n < (1 << 8) ? 1 : n < (1 << 16) ? 2 : 4;
   }
 
+  /**
+   * Creates a {@link Decoder} for a {@link Maybe} type.
+   *
+   * @param elementDecoder a {@link Decoder} for the contained element.
+   * @param <U> the element type.
+   * @return a new {@link Decoder}.
+   */
   public static <U extends Value> Decoder<Maybe<U>> ofMaybe(Decoder<U> elementDecoder) {
     return new Decoder<>() {
       @Override
@@ -167,6 +206,14 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for a {@link Structure} type.
+   *
+   * @param recordType the {@link Record} type that represents the components of the structure.
+   * @param componentDecoders a {@link Decoder} for each component of the structure.
+   * @param <U> the {@link Record} type that represents the components of the structure.
+   * @return a new {@link Decoder}.
+   */
   @SafeVarargs
   public static <U extends Record> Decoder<Structure<U>> ofStructure(
       Class<U> recordType, Decoder<? extends Value>... componentDecoders) {
@@ -260,6 +307,11 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Variant} type.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Variant> ofVariant() {
     return new Decoder<>() {
       @Override
@@ -281,7 +333,12 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
-  public static Decoder<Bool> ofBoolean() {
+  /**
+   * Creates a {@link Decoder} for the {@link Bool} type.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Bool> ofBool() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -300,6 +357,14 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Int8} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Int8> ofInt8() {
     return new Decoder<>() {
       @Override
@@ -319,6 +384,14 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Int16} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Int16> ofInt16() {
     return new Decoder<>() {
       @Override
@@ -338,6 +411,14 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Int32} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Int32> ofInt32() {
     return new Decoder<>() {
       @Override
@@ -357,6 +438,14 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Int64} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Int64> ofInt64() {
     return new Decoder<>() {
       @Override
@@ -376,6 +465,11 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Float64} type.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Float64> ofFloat64() {
     return new Decoder<>() {
       @Override
@@ -395,6 +489,14 @@ public abstract class Decoder<T extends Value> {
     };
   }
 
+  /**
+   * Creates a {@link Decoder} for the {@link Str} type.
+   *
+   * <p><strong>Note:</strong> While GVariant does not prescribe any particular encoding, {@link
+   * java.nio.charset.StandardCharsets#UTF_8} is the most common choice.
+   *
+   * @return a new {@link Decoder}.
+   */
   public static Decoder<Str> ofStr(Charset charset) {
     return new Decoder<>() {
       @Override

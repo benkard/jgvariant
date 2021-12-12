@@ -41,7 +41,7 @@ class DecoderTest {
   @Test
   void testBooleanArray() {
     var data = new byte[] {0x01, 0x00, 0x00, 0x01, 0x01};
-    var decoder = Decoder.ofArray(Decoder.ofBoolean());
+    var decoder = Decoder.ofArray(Decoder.ofBool());
     assertEquals(
         new Array<>(List.of(Bool.TRUE, Bool.FALSE, Bool.FALSE, Bool.TRUE, Bool.TRUE)),
         decoder.decode(ByteBuffer.wrap(data)));
