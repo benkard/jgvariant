@@ -96,52 +96,118 @@ public abstract class Decoder<T> {
    * @return a new {@link Decoder}.
    */
   public static <U> Decoder<List<U>> ofArray(Decoder<U> elementDecoder) {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return elementDecoder.alignment();
-      }
+    return new ArrayDecoder<>(elementDecoder);
+  }
 
-      @Override
-      @Nullable
-      Integer fixedSize() {
-        return null;
-      }
+  /**
+   * Creates a {@link Decoder} for a {@code Maybe} type.
+   *
+   * @param elementDecoder a {@link Decoder} for the contained element.
+   * @param <U> the element type.
+   * @return a new {@link Decoder}.
+   */
+  public static <U> Decoder<Optional<U>> ofMaybe(Decoder<U> elementDecoder) {
+    return new MaybeDecoder<>(elementDecoder);
+  }
 
-      @Override
-      public List<U> decode(ByteBuffer byteSlice) {
-        List<U> elements;
+  /**
+   * Creates a {@link Decoder} for a {@code Structure} type.
+   *
+   * @param recordType the {@link Record} type that represents the components of the structure.
+   * @param componentDecoders a {@link Decoder} for each component of the structure.
+   * @param <U> the {@link Record} type that represents the components of the structure.
+   * @return a new {@link Decoder}.
+   */
+  public static <U extends Record> Decoder<U> ofStructure(
+      Class<U> recordType, Decoder<?>... componentDecoders) {
+    return new StructureDecoder<>(recordType, componentDecoders);
+  }
 
-        var elementSize = elementDecoder.fixedSize();
-        if (elementSize != null) {
-          // A simple C-style array.
-          elements = new ArrayList<>(byteSlice.limit() / elementSize);
-          for (int i = 0; i < byteSlice.limit(); i += elementSize) {
-            var element = elementDecoder.decode(byteSlice.slice(i, elementSize));
-            elements.add(element);
-          }
-        } else {
-          // An array with aligned elements and a vector of framing offsets in the end.
-          int framingOffsetSize = byteCount(byteSlice.limit());
-          int lastFramingOffset =
-              getIntN(byteSlice.slice(byteSlice.limit() - framingOffsetSize, framingOffsetSize));
-          int elementCount = (byteSlice.limit() - lastFramingOffset) / framingOffsetSize;
+  /**
+   * Creates a {@link Decoder} for the {@link Variant} type.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Variant> ofVariant() {
+    return new VariantDecoder();
+  }
 
-          elements = new ArrayList<>(elementCount);
-          int position = 0;
-          for (int i = 0; i < elementCount; i++) {
-            int framingOffset =
-                getIntN(
-                    byteSlice.slice(lastFramingOffset + i * framingOffsetSize, framingOffsetSize));
-            elements.add(
-                elementDecoder.decode(byteSlice.slice(position, framingOffset - position)));
-            position = align(framingOffset, alignment());
-          }
-        }
+  /**
+   * Creates a {@link Decoder} for the {@code Boolean} type.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Boolean> ofBoolean() {
+    return new BooleanDecoder();
+  }
 
-        return elements;
-      }
-    };
+  /**
+   * Creates a {@link Decoder} for the 8-bit {@ode byte} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Byte> ofByte() {
+    return new ByteDecoder();
+  }
+
+  /**
+   * Creates a {@link Decoder} for the 16-bit {@code short} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Short> ofShort() {
+    return new ShortDecoder();
+  }
+
+  /**
+   * Creates a {@link Decoder} for the 32-bit {@code int} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Integer> ofInt() {
+    return new IntegerDecoder();
+  }
+
+  /**
+   * Creates a {@link Decoder} for the 64-bit {@code long} type.
+   *
+   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
+   * result of this method.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Long> ofLong() {
+    return new LongDecoder();
+  }
+
+  /**
+   * Creates a {@link Decoder} for the {@code double} type.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Double> ofDouble() {
+    return new DoubleDecoder();
+  }
+
+  /**
+   * Creates a {@link Decoder} for the {@link String} type.
+   *
+   * <p><strong>Note:</strong> While GVariant does not prescribe any particular encoding, {@link
+   * java.nio.charset.StandardCharsets#UTF_8} is the most common choice.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<String> ofString(Charset charset) {
+    return new StringDecoder(charset);
   }
 
   private static int align(int offset, byte alignment) {
@@ -159,350 +225,345 @@ public abstract class Decoder<T> {
     return n < (1 << 8) ? 1 : n < (1 << 16) ? 2 : 4;
   }
 
-  /**
-   * Creates a {@link Decoder} for a {@code Maybe} type.
-   *
-   * @param elementDecoder a {@link Decoder} for the contained element.
-   * @param <U> the element type.
-   * @return a new {@link Decoder}.
-   */
-  public static <U> Decoder<Optional<U>> ofMaybe(Decoder<U> elementDecoder) {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return elementDecoder.alignment();
-      }
+  private static class ArrayDecoder<U> extends Decoder<List<U>> {
 
-      @Override
-      @Nullable
-      Integer fixedSize() {
-        return null;
-      }
+    private final Decoder<U> elementDecoder;
 
-      @Override
-      public Optional<U> decode(ByteBuffer byteSlice) {
-        if (!byteSlice.hasRemaining()) {
-          return Optional.empty();
-        } else {
-          if (!elementDecoder.hasFixedSize()) {
-            // Remove trailing zero byte.
-            byteSlice.limit(byteSlice.limit() - 1);
-          }
-
-          return Optional.of(elementDecoder.decode(byteSlice));
-        }
-      }
-    };
-  }
-
-  /**
-   * Creates a {@link Decoder} for a {@code Structure} type.
-   *
-   * @param recordType the {@link Record} type that represents the components of the structure.
-   * @param componentDecoders a {@link Decoder} for each component of the structure.
-   * @param <U> the {@link Record} type that represents the components of the structure.
-   * @return a new {@link Decoder}.
-   */
-  public static <U extends Record> Decoder<U> ofStructure(
-      Class<U> recordType, Decoder<?>... componentDecoders) {
-    var recordComponents = recordType.getRecordComponents();
-    if (componentDecoders.length != recordComponents.length) {
-      throw new IllegalArgumentException(
-          "number of decoders (%d) does not match number of structure components (%d)"
-              .formatted(componentDecoders.length, recordComponents.length));
+    ArrayDecoder(Decoder<U> elementDecoder) {
+      this.elementDecoder = elementDecoder;
     }
 
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return (byte) Arrays.stream(componentDecoders).mapToInt(Decoder::alignment).max().orElse(1);
-      }
+    @Override
+    public byte alignment() {
+      return elementDecoder.alignment();
+    }
 
-      @Override
-      public Integer fixedSize() {
-        int position = 0;
-        for (var componentDecoder : componentDecoders) {
-          var fixedComponentSize = componentDecoder.fixedSize();
-          if (fixedComponentSize == null) {
-            return null;
-          }
+    @Override
+    @Nullable
+    Integer fixedSize() {
+      return null;
+    }
 
-          position = align(position, componentDecoder.alignment());
-          position += fixedComponentSize;
+    @Override
+    public List<U> decode(ByteBuffer byteSlice) {
+      List<U> elements;
+
+      var elementSize = elementDecoder.fixedSize();
+      if (elementSize != null) {
+        // A simple C-style array.
+        elements = new ArrayList<>(byteSlice.limit() / elementSize);
+        for (int i = 0; i < byteSlice.limit(); i += elementSize) {
+          var element = elementDecoder.decode(byteSlice.slice(i, elementSize));
+          elements.add(element);
         }
-
-        if (position == 0) {
-          return 1;
-        }
-
-        return align(position, alignment());
-      }
-
-      @Override
-      public U decode(ByteBuffer byteSlice) {
+      } else {
+        // An array with aligned elements and a vector of framing offsets in the end.
         int framingOffsetSize = byteCount(byteSlice.limit());
+        int lastFramingOffset =
+            getIntN(byteSlice.slice(byteSlice.limit() - framingOffsetSize, framingOffsetSize));
+        int elementCount = (byteSlice.limit() - lastFramingOffset) / framingOffsetSize;
 
-        var recordConstructorArguments = new Object[recordComponents.length];
-
+        elements = new ArrayList<>(elementCount);
         int position = 0;
-        int framingOffsetIndex = 0;
-        int componentIndex = 0;
-        for (var componentDecoder : componentDecoders) {
-          position = align(position, componentDecoder.alignment());
+        for (int i = 0; i < elementCount; i++) {
+          int framingOffset =
+              getIntN(
+                  byteSlice.slice(lastFramingOffset + i * framingOffsetSize, framingOffsetSize));
+          elements.add(elementDecoder.decode(byteSlice.slice(position, framingOffset - position)));
+          position = align(framingOffset, alignment());
+        }
+      }
 
-          var fixedComponentSize = componentDecoder.fixedSize();
-          if (fixedComponentSize != null) {
+      return elements;
+    }
+  }
+
+  private static class MaybeDecoder<U> extends Decoder<Optional<U>> {
+
+    private final Decoder<U> elementDecoder;
+
+    MaybeDecoder(Decoder<U> elementDecoder) {
+      this.elementDecoder = elementDecoder;
+    }
+
+    @Override
+    public byte alignment() {
+      return elementDecoder.alignment();
+    }
+
+    @Override
+    @Nullable
+    Integer fixedSize() {
+      return null;
+    }
+
+    @Override
+    public Optional<U> decode(ByteBuffer byteSlice) {
+      if (!byteSlice.hasRemaining()) {
+        return Optional.empty();
+      } else {
+        if (!elementDecoder.hasFixedSize()) {
+          // Remove trailing zero byte.
+          byteSlice.limit(byteSlice.limit() - 1);
+        }
+
+        return Optional.of(elementDecoder.decode(byteSlice));
+      }
+    }
+  }
+
+  private static class StructureDecoder<U extends Record> extends Decoder<U> {
+
+    private final RecordComponent[] recordComponents;
+    private final Class<U> recordType;
+    private final Decoder<?>[] componentDecoders;
+
+    StructureDecoder(Class<U> recordType, Decoder<?>... componentDecoders) {
+      var recordComponents = recordType.getRecordComponents();
+
+      if (componentDecoders.length != recordComponents.length) {
+        throw new IllegalArgumentException(
+            "number of decoders (%d) does not match number of structure components (%d)"
+                .formatted(componentDecoders.length, recordComponents.length));
+      }
+
+      this.recordComponents = recordComponents;
+      this.recordType = recordType;
+      this.componentDecoders = componentDecoders;
+    }
+
+    @Override
+    public byte alignment() {
+      return (byte) Arrays.stream(componentDecoders).mapToInt(Decoder::alignment).max().orElse(1);
+    }
+
+    @Override
+    public Integer fixedSize() {
+      int position = 0;
+      for (var componentDecoder : componentDecoders) {
+        var fixedComponentSize = componentDecoder.fixedSize();
+        if (fixedComponentSize == null) {
+          return null;
+        }
+
+        position = align(position, componentDecoder.alignment());
+        position += fixedComponentSize;
+      }
+
+      if (position == 0) {
+        return 1;
+      }
+
+      return align(position, alignment());
+    }
+
+    @Override
+    public U decode(ByteBuffer byteSlice) {
+      int framingOffsetSize = byteCount(byteSlice.limit());
+
+      var recordConstructorArguments = new Object[recordComponents.length];
+
+      int position = 0;
+      int framingOffsetIndex = 0;
+      int componentIndex = 0;
+      for (var componentDecoder : componentDecoders) {
+        position = align(position, componentDecoder.alignment());
+
+        var fixedComponentSize = componentDecoder.fixedSize();
+        if (fixedComponentSize != null) {
+          recordConstructorArguments[componentIndex] =
+              componentDecoder.decode(byteSlice.slice(position, fixedComponentSize));
+          position += fixedComponentSize;
+        } else {
+          if (componentIndex == recordComponents.length - 1) {
+            // The last component never has a framing offset.
+            int endPosition = byteSlice.limit() - framingOffsetIndex * framingOffsetSize;
             recordConstructorArguments[componentIndex] =
-                componentDecoder.decode(byteSlice.slice(position, fixedComponentSize));
-            position += fixedComponentSize;
+                componentDecoder.decode(byteSlice.slice(position, endPosition - position));
+            position = endPosition;
           } else {
-            if (componentIndex == recordComponents.length - 1) {
-              // The last component never has a framing offset.
-              int endPosition = byteSlice.limit() - framingOffsetIndex * framingOffsetSize;
-              recordConstructorArguments[componentIndex] =
-                  componentDecoder.decode(byteSlice.slice(position, endPosition - position));
-              position = endPosition;
-            } else {
-              int framingOffset =
-                  getIntN(
-                      byteSlice.slice(
-                          byteSlice.limit() - (1 + framingOffsetIndex) * framingOffsetSize,
-                          framingOffsetSize));
-              recordConstructorArguments[componentIndex] =
-                  componentDecoder.decode(byteSlice.slice(position, framingOffset - position));
-              position = framingOffset;
-              ++framingOffsetIndex;
-            }
+            int framingOffset =
+                getIntN(
+                    byteSlice.slice(
+                        byteSlice.limit() - (1 + framingOffsetIndex) * framingOffsetSize,
+                        framingOffsetSize));
+            recordConstructorArguments[componentIndex] =
+                componentDecoder.decode(byteSlice.slice(position, framingOffset - position));
+            position = framingOffset;
+            ++framingOffsetIndex;
           }
-
-          ++componentIndex;
         }
 
-        try {
-          var recordComponentTypes =
-              Arrays.stream(recordType.getRecordComponents())
-                  .map(RecordComponent::getType)
-                  .toArray(Class<?>[]::new);
-          var recordConstructor = recordType.getDeclaredConstructor(recordComponentTypes);
-          return recordConstructor.newInstance(recordConstructorArguments);
-        } catch (NoSuchMethodException
-            | InstantiationException
-            | IllegalAccessException
-            | InvocationTargetException e) {
-          throw new IllegalStateException(e);
-        }
+        ++componentIndex;
       }
-    };
+
+      try {
+        var recordComponentTypes =
+            Arrays.stream(recordType.getRecordComponents())
+                .map(RecordComponent::getType)
+                .toArray(Class<?>[]::new);
+        var recordConstructor = recordType.getDeclaredConstructor(recordComponentTypes);
+        return recordConstructor.newInstance(recordConstructorArguments);
+      } catch (NoSuchMethodException
+          | InstantiationException
+          | IllegalAccessException
+          | InvocationTargetException e) {
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the {@link Variant} type.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Variant> ofVariant() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 8;
-      }
+  private static class VariantDecoder extends Decoder<Variant> {
 
-      @Override
-      @Nullable
-      Integer fixedSize() {
-        return null;
-      }
+    @Override
+    public byte alignment() {
+      return 8;
+    }
 
-      @Override
-      public Variant decode(ByteBuffer byteSlice) {
-        // TODO
-        throw new UnsupportedOperationException("not implemented");
-      }
-    };
+    @Override
+    @Nullable
+    Integer fixedSize() {
+      return null;
+    }
+
+    @Override
+    public Variant decode(ByteBuffer byteSlice) {
+      // TODO
+      throw new UnsupportedOperationException("not implemented");
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the {@code Boolean} type.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Boolean> ofBoolean() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 1;
-      }
+  private static class BooleanDecoder extends Decoder<Boolean> {
 
-      @Override
-      public Integer fixedSize() {
-        return 1;
-      }
+    @Override
+    public byte alignment() {
+      return 1;
+    }
 
-      @Override
-      public Boolean decode(ByteBuffer byteSlice) {
-        return byteSlice.get() != 0;
-      }
-    };
+    @Override
+    public Integer fixedSize() {
+      return 1;
+    }
+
+    @Override
+    public Boolean decode(ByteBuffer byteSlice) {
+      return byteSlice.get() != 0;
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the 8-bit {@ode byte} type.
-   *
-   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
-   * result of this method.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Byte> ofByte() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 1;
-      }
+  private static class ByteDecoder extends Decoder<Byte> {
 
-      @Override
-      public Integer fixedSize() {
-        return 1;
-      }
+    @Override
+    public byte alignment() {
+      return 1;
+    }
 
-      @Override
-      public Byte decode(ByteBuffer byteSlice) {
-        return byteSlice.get();
-      }
-    };
+    @Override
+    public Integer fixedSize() {
+      return 1;
+    }
+
+    @Override
+    public Byte decode(ByteBuffer byteSlice) {
+      return byteSlice.get();
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the 16-bit {@code short} type.
-   *
-   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
-   * result of this method.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Short> ofShort() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 2;
-      }
+  private static class ShortDecoder extends Decoder<Short> {
 
-      @Override
-      public Integer fixedSize() {
-        return 2;
-      }
+    @Override
+    public byte alignment() {
+      return 2;
+    }
 
-      @Override
-      public Short decode(ByteBuffer byteSlice) {
-        return byteSlice.getShort();
-      }
-    };
+    @Override
+    public Integer fixedSize() {
+      return 2;
+    }
+
+    @Override
+    public Short decode(ByteBuffer byteSlice) {
+      return byteSlice.getShort();
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the 32-bit {@code int} type.
-   *
-   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
-   * result of this method.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Integer> ofInt() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 4;
-      }
+  private static class IntegerDecoder extends Decoder<Integer> {
 
-      @Override
-      public Integer fixedSize() {
-        return 4;
-      }
+    @Override
+    public byte alignment() {
+      return 4;
+    }
 
-      @Override
-      public Integer decode(ByteBuffer byteSlice) {
-        return byteSlice.getInt();
-      }
-    };
+    @Override
+    public Integer fixedSize() {
+      return 4;
+    }
+
+    @Override
+    public Integer decode(ByteBuffer byteSlice) {
+      return byteSlice.getInt();
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the 64-bit {@code long} type.
-   *
-   * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
-   * result of this method.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Long> ofLong() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 8;
-      }
+  private static class LongDecoder extends Decoder<Long> {
 
-      @Override
-      public Integer fixedSize() {
-        return 8;
-      }
+    @Override
+    public byte alignment() {
+      return 8;
+    }
 
-      @Override
-      public Long decode(ByteBuffer byteSlice) {
-        return byteSlice.getLong();
-      }
-    };
+    @Override
+    public Integer fixedSize() {
+      return 8;
+    }
+
+    @Override
+    public Long decode(ByteBuffer byteSlice) {
+      return byteSlice.getLong();
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the {@code double} type.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<Double> ofDouble() {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 8;
-      }
+  private static class DoubleDecoder extends Decoder<Double> {
 
-      @Override
-      public Integer fixedSize() {
-        return 8;
-      }
+    @Override
+    public byte alignment() {
+      return 8;
+    }
 
-      @Override
-      public Double decode(ByteBuffer byteSlice) {
-        return byteSlice.getDouble();
-      }
-    };
+    @Override
+    public Integer fixedSize() {
+      return 8;
+    }
+
+    @Override
+    public Double decode(ByteBuffer byteSlice) {
+      return byteSlice.getDouble();
+    }
   }
 
-  /**
-   * Creates a {@link Decoder} for the {@link String} type.
-   *
-   * <p><strong>Note:</strong> While GVariant does not prescribe any particular encoding, {@link
-   * java.nio.charset.StandardCharsets#UTF_8} is the most common choice.
-   *
-   * @return a new {@link Decoder}.
-   */
-  public static Decoder<String> ofString(Charset charset) {
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return 1;
-      }
+  private static class StringDecoder extends Decoder<String> {
 
-      @Override
-      @Nullable
-      Integer fixedSize() {
-        return null;
-      }
+    private final Charset charset;
 
-      @Override
-      public String decode(ByteBuffer byteSlice) {
-        byteSlice.limit(byteSlice.limit() - 1);
-        return charset.decode(byteSlice).toString();
-      }
-    };
+    public StringDecoder(Charset charset) {
+      this.charset = charset;
+    }
+
+    @Override
+    public byte alignment() {
+      return 1;
+    }
+
+    @Override
+    @Nullable
+    Integer fixedSize() {
+      return null;
+    }
+
+    @Override
+    public String decode(ByteBuffer byteSlice) {
+      byteSlice.limit(byteSlice.limit() - 1);
+      return charset.decode(byteSlice).toString();
+    }
   }
 }
