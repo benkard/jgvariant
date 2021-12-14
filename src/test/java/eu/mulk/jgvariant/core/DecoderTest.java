@@ -2,6 +2,8 @@ package eu.mulk.jgvariant.core;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.ByteBuffer;
@@ -123,6 +125,23 @@ class DecoderTest {
     assertEquals(
         new TestParent(new TestChild((byte) 0x69, "can"), List.of("has", "strings?")),
         decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testNestedStructureVariant() {
+    var data =
+        new byte[] {
+          0x69, 0x63, 0x61, 0x6E, 0x00, 0x68, 0x61, 0x73, 0x00, 0x73, 0x74, 0x72, 0x69, 0x6E, 0x67,
+          0x73, 0x3F, 0x00, 0x04, 0x0d, 0x05, 0x00, 0x28, 0x28, 0x79, 0x73, 0x29, 0x61, 0x73, 0x29
+        };
+
+    var decoder = Decoder.ofVariant();
+    var result = (Object[]) decoder.decode(ByteBuffer.wrap(data));
+
+    assertAll(
+        () -> assertEquals(2, result.length),
+        () -> assertArrayEquals(new Object[] {(byte) 0x69, "can"}, (Object[]) result[0]),
+        () -> assertEquals(List.of("has", "strings?"), result[1]));
   }
 
   @Test

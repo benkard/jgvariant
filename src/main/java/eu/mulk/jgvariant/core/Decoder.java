@@ -7,6 +7,7 @@ import java.lang.reflect.RecordComponent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Type class for decodable {@link Variant} types.
+ * Type class for decodable types.
  *
  * <p>Use the {@code of*} family of constructor methods to acquire a suitable {@link Decoder} for
  * the type you wish to decode.
@@ -111,7 +112,7 @@ public abstract class Decoder<T> {
   }
 
   /**
-   * Creates a {@link Decoder} for a {@code Structure} type.
+   * Creates a {@link Decoder} for a {@code Structure} type, decoding into a {@link Record}.
    *
    * @param recordType the {@link Record} type that represents the components of the structure.
    * @param componentDecoders a {@link Decoder} for each component of the structure.
@@ -124,11 +125,38 @@ public abstract class Decoder<T> {
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Variant} type.
+   * Creates a {@link Decoder} for a {@code Structure} type, decoding into a {@link List}.
+   *
+   * <p>Prefer {@link #ofStructure(Class, Decoder[])} if possible, which is both more type-safe and
+   * more convenient.
+   *
+   * @param componentDecoders a {@link Decoder} for each component of the structure.
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<Object[]> ofStructure(Decoder<?>... componentDecoders) {
+    return new TupleDecoder(componentDecoders);
+  }
+
+  /**
+   * Creates a {@link Decoder} for the {@code Variant} type.
+   *
+   * <p>The returned {@link Object} can be of one of the following types:
+   *
+   * <ul>
+   *   <li>{@link Boolean}
+   *   <li>{@link Byte}
+   *   <li>{@link Short}
+   *   <li>{@link Integer}
+   *   <li>{@link Long}
+   *   <li>{@link String}
+   *   <li>{@link Optional} (a GVariant {@code Maybe} type)
+   *   <li>{@link List} (a GVariant array)
+   *   <li>{@link Object[]} (a GVariant structure)
+   * </ul>
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Variant> ofVariant() {
+  public static Decoder<Object> ofVariant() {
     return new VariantDecoder();
   }
 
@@ -142,7 +170,7 @@ public abstract class Decoder<T> {
   }
 
   /**
-   * Creates a {@link Decoder} for the 8-bit {@ode byte} type.
+   * Creates a {@link Decoder} for the 8-bit {@code byte} type.
    *
    * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
    * result of this method.
@@ -314,21 +342,56 @@ public abstract class Decoder<T> {
 
   private static class StructureDecoder<U extends Record> extends Decoder<U> {
 
-    private final RecordComponent[] recordComponents;
     private final Class<U> recordType;
-    private final Decoder<?>[] componentDecoders;
+    private final TupleDecoder tupleDecoder;
 
     StructureDecoder(Class<U> recordType, Decoder<?>... componentDecoders) {
       var recordComponents = recordType.getRecordComponents();
-
       if (componentDecoders.length != recordComponents.length) {
         throw new IllegalArgumentException(
             "number of decoders (%d) does not match number of structure components (%d)"
                 .formatted(componentDecoders.length, recordComponents.length));
       }
 
-      this.recordComponents = recordComponents;
       this.recordType = recordType;
+      this.tupleDecoder = new TupleDecoder(componentDecoders);
+    }
+
+    @Override
+    public byte alignment() {
+      return tupleDecoder.alignment();
+    }
+
+    @Override
+    public Integer fixedSize() {
+      return tupleDecoder.fixedSize();
+    }
+
+    @Override
+    public U decode(ByteBuffer byteSlice) {
+      Object[] recordConstructorArguments = tupleDecoder.decode(byteSlice);
+
+      try {
+        var recordComponentTypes =
+            Arrays.stream(recordType.getRecordComponents())
+                .map(RecordComponent::getType)
+                .toArray(Class<?>[]::new);
+        var recordConstructor = recordType.getDeclaredConstructor(recordComponentTypes);
+        return recordConstructor.newInstance(recordConstructorArguments);
+      } catch (NoSuchMethodException
+          | InstantiationException
+          | IllegalAccessException
+          | InvocationTargetException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  private static class TupleDecoder extends Decoder<Object[]> {
+
+    private final Decoder<?>[] componentDecoders;
+
+    TupleDecoder(Decoder<?>... componentDecoders) {
       this.componentDecoders = componentDecoders;
     }
 
@@ -358,10 +421,10 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public U decode(ByteBuffer byteSlice) {
+    public Object[] decode(ByteBuffer byteSlice) {
       int framingOffsetSize = byteCount(byteSlice.limit());
 
-      var recordConstructorArguments = new Object[recordComponents.length];
+      var objects = new Object[componentDecoders.length];
 
       int position = 0;
       int framingOffsetIndex = 0;
@@ -371,14 +434,14 @@ public abstract class Decoder<T> {
 
         var fixedComponentSize = componentDecoder.fixedSize();
         if (fixedComponentSize != null) {
-          recordConstructorArguments[componentIndex] =
+          objects[componentIndex] =
               componentDecoder.decode(byteSlice.slice(position, fixedComponentSize));
           position += fixedComponentSize;
         } else {
-          if (componentIndex == recordComponents.length - 1) {
+          if (componentIndex == componentDecoders.length - 1) {
             // The last component never has a framing offset.
             int endPosition = byteSlice.limit() - framingOffsetIndex * framingOffsetSize;
-            recordConstructorArguments[componentIndex] =
+            objects[componentIndex] =
                 componentDecoder.decode(byteSlice.slice(position, endPosition - position));
             position = endPosition;
           } else {
@@ -387,7 +450,7 @@ public abstract class Decoder<T> {
                     byteSlice.slice(
                         byteSlice.limit() - (1 + framingOffsetIndex) * framingOffsetSize,
                         framingOffsetSize));
-            recordConstructorArguments[componentIndex] =
+            objects[componentIndex] =
                 componentDecoder.decode(byteSlice.slice(position, framingOffset - position));
             position = framingOffset;
             ++framingOffsetIndex;
@@ -397,23 +460,11 @@ public abstract class Decoder<T> {
         ++componentIndex;
       }
 
-      try {
-        var recordComponentTypes =
-            Arrays.stream(recordType.getRecordComponents())
-                .map(RecordComponent::getType)
-                .toArray(Class<?>[]::new);
-        var recordConstructor = recordType.getDeclaredConstructor(recordComponentTypes);
-        return recordConstructor.newInstance(recordConstructorArguments);
-      } catch (NoSuchMethodException
-          | InstantiationException
-          | IllegalAccessException
-          | InvocationTargetException e) {
-        throw new IllegalStateException(e);
-      }
+      return objects;
     }
   }
 
-  private static class VariantDecoder extends Decoder<Variant> {
+  private static class VariantDecoder extends Decoder<Object> {
 
     @Override
     public byte alignment() {
@@ -427,9 +478,55 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Variant decode(ByteBuffer byteSlice) {
-      // TODO
-      throw new UnsupportedOperationException("not implemented");
+    public Object decode(ByteBuffer byteSlice) {
+      for (int i = byteSlice.limit() - 1; i >= 0; --i) {
+        if (byteSlice.get(i) != 0) {
+          continue;
+        }
+
+        var data = byteSlice.slice(0, i);
+        var signature = byteSlice.slice(i + 1, byteSlice.limit() - (i + 1));
+
+        Decoder<?> decoder = parseSignature(signature);
+        return decoder.decode(data);
+      }
+
+      throw new IllegalArgumentException("variant signature not found");
+    }
+
+    private static Decoder<?> parseSignature(ByteBuffer signature) {
+      char c = (char) signature.get();
+      return switch (c) {
+        case 'b' -> Decoder.ofBoolean();
+        case 'y' -> Decoder.ofByte();
+        case 'n', 'q' -> Decoder.ofShort();
+        case 'i', 'u' -> Decoder.ofInt();
+        case 'x', 't' -> Decoder.ofLong();
+        case 'd' -> Decoder.ofDouble();
+        case 's', 'o', 'g' -> Decoder.ofString(StandardCharsets.UTF_8);
+        case 'v' -> Decoder.ofVariant();
+        case 'm' -> Decoder.ofMaybe(parseSignature(signature));
+        case 'a' -> Decoder.ofArray(parseSignature(signature));
+        case '(', '{' -> Decoder.ofStructure(parseTupleTypes(signature).toArray(new Decoder<?>[0]));
+        default -> throw new IllegalArgumentException(
+            String.format("encountered unknown signature byte '%c'", c));
+      };
+    }
+
+    private static List<Decoder<?>> parseTupleTypes(ByteBuffer signature) {
+      List<Decoder<?>> decoders = new ArrayList<>();
+
+      while (true) {
+        char c = (char) signature.get(signature.position());
+        if (c == ')' || c == '}') {
+          signature.get();
+          break;
+        }
+
+        decoders.add(parseSignature(signature));
+      }
+
+      return decoders;
     }
   }
 

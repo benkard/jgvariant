@@ -1,14 +1,9 @@
 /**
- * Provides {@link eu.mulk.jgvariant.core.Variant} and {@link eu.mulk.jgvariant.core.Decoder}, the
- * foundational classes for <a href="https://docs.gtk.org/glib/struct.Variant.html">GVariant</a>
- * parsing.
+ * Provides {@link eu.mulk.jgvariant.core.Decoder}, the foundational class for <a
+ * href="https://docs.gtk.org/glib/struct.Variant.html">GVariant</a> parsing.
  *
- * <p>{@link eu.mulk.jgvariant.core.Variant} is a sum type (sealed interface) that represents a
- * GVariant value. Its subtypes represent the different types of values that GVariant supports.
- *
- * <p>Instances of {@link eu.mulk.jgvariant.core.Decoder} read a given concrete subtype of {@link
- * eu.mulk.jgvariant.core.Variant} from a {@link java.nio.ByteBuffer}. The class also contains
- * factory methods to create those instances.
+ * <p>Instances of {@link eu.mulk.jgvariant.core.Decoder} read a given value type from a {@link
+ * java.nio.ByteBuffer}. The class also contains factory methods to create those instances.
  *
  * <p><strong>Example</strong>
  *

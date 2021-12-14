@@ -5,11 +5,7 @@ This library provides a [GVariant][] parser in pure Java.
 
 ## Overview
 
-The two foundational classes are `Value` and `Decoder`.
-
-`Value` is a sum type (sealed interface) that represents a
-[GVariant][] value.  Its subtypes represent the different types of
-values that [GVariant][] supports.
+The foundational class is `Decoder`.
 
 Instances of `Decoder` read a given concrete subtype of `Value` from a
 [ByteBuffer][].  The class also contains factory methods to create
