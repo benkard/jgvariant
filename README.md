@@ -24,17 +24,17 @@ serialization][] specification.
 To parse a [GVariant][] value of type `"a(si)"`, which is an array of
 pairs of [String][] and `int`, you can use the following code:
 
-    record ExampleRecord(Value.Str s, Value.Int32 i) {}
+    record ExampleRecord(String s, int i) {}
     
     var decoder =
       Decoder.ofArray(
         Decoder.ofStructure(
           ExampleRecord.class,
-          Decoder.ofStr(StandardCharsets.UTF_8),
-          Decoder.ofInt32().withByteOrder(ByteOrder.LITTLE_ENDIAN)));
+          Decoder.ofString(StandardCharsets.UTF_8),
+          Decoder.ofInt().withByteOrder(ByteOrder.LITTLE_ENDIAN)));
     
     byte[] bytes = ...;
-    Value.Array<Value.Structure<ExampleRecord>> example = decoder.decode(bytes);
+    List<ExampleRecord> example = decoder.decode(ByteBuffer.wrap(bytes));
 
 
 [ByteBuffer]: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html

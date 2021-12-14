@@ -2,17 +2,6 @@ package eu.mulk.jgvariant.core;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
-import eu.mulk.jgvariant.core.Value.Array;
-import eu.mulk.jgvariant.core.Value.Bool;
-import eu.mulk.jgvariant.core.Value.Float64;
-import eu.mulk.jgvariant.core.Value.Int16;
-import eu.mulk.jgvariant.core.Value.Int32;
-import eu.mulk.jgvariant.core.Value.Int64;
-import eu.mulk.jgvariant.core.Value.Int8;
-import eu.mulk.jgvariant.core.Value.Maybe;
-import eu.mulk.jgvariant.core.Value.Str;
-import eu.mulk.jgvariant.core.Value.Structure;
-import eu.mulk.jgvariant.core.Value.Variant;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.nio.ByteBuffer;
@@ -25,7 +14,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Type class for decodable {@link Value} types.
+ * Type class for decodable {@link Variant} types.
  *
  * <p>Use the {@code of*} family of constructor methods to acquire a suitable {@link Decoder} for
  * the type you wish to decode.
@@ -36,23 +25,23 @@ import org.jetbrains.annotations.Nullable;
  * {@code int}, you can use the following code:
  *
  * <pre>{@code
- * record ExampleRecord(Value.Str s, Value.Int32 i) {}
+ * record ExampleRecord(String s, int i) {}
  *
  * var decoder =
  *   Decoder.ofArray(
  *     Decoder.ofStructure(
  *       ExampleRecord.class,
- *       Decoder.ofStr(UTF_8),
- *       Decoder.ofInt32().withByteOrder(LITTLE_ENDIAN)));
+ *       Decoder.ofString(UTF_8),
+ *       Decoder.ofInt().withByteOrder(LITTLE_ENDIAN)));
  *
  * byte[] bytes = ...;
- * Value.Array<Value.Structure<ExampleRecord>> example = decoder.decode(ByteBuffer.wrap(bytes));
+ * List<ExampleRecord> example = decoder.decode(ByteBuffer.wrap(bytes));
  * }</pre>
  *
  * @param <T> the type that the {@link Decoder} can decode.
  */
 @SuppressWarnings("java:S1610")
-public abstract class Decoder<T extends Value> {
+public abstract class Decoder<T> {
 
   private Decoder() {}
 
@@ -100,13 +89,13 @@ public abstract class Decoder<T extends Value> {
   }
 
   /**
-   * Creates a {@link Decoder} for an {@link Array} type.
+   * Creates a {@link Decoder} for an {@code Array} type.
    *
    * @param elementDecoder a {@link Decoder} for the elements of the array.
    * @param <U> the element type.
    * @return a new {@link Decoder}.
    */
-  public static <U extends Value> Decoder<Array<U>> ofArray(Decoder<U> elementDecoder) {
+  public static <U> Decoder<List<U>> ofArray(Decoder<U> elementDecoder) {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -120,7 +109,7 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Array<U> decode(ByteBuffer byteSlice) {
+      public List<U> decode(ByteBuffer byteSlice) {
         List<U> elements;
 
         var elementSize = elementDecoder.fixedSize();
@@ -150,7 +139,7 @@ public abstract class Decoder<T extends Value> {
           }
         }
 
-        return new Array<>(elements);
+        return elements;
       }
     };
   }
@@ -171,13 +160,13 @@ public abstract class Decoder<T extends Value> {
   }
 
   /**
-   * Creates a {@link Decoder} for a {@link Maybe} type.
+   * Creates a {@link Decoder} for a {@code Maybe} type.
    *
    * @param elementDecoder a {@link Decoder} for the contained element.
    * @param <U> the element type.
    * @return a new {@link Decoder}.
    */
-  public static <U extends Value> Decoder<Maybe<U>> ofMaybe(Decoder<U> elementDecoder) {
+  public static <U> Decoder<Optional<U>> ofMaybe(Decoder<U> elementDecoder) {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -191,32 +180,31 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Maybe<U> decode(ByteBuffer byteSlice) {
+      public Optional<U> decode(ByteBuffer byteSlice) {
         if (!byteSlice.hasRemaining()) {
-          return new Maybe<>(Optional.empty());
+          return Optional.empty();
         } else {
           if (!elementDecoder.hasFixedSize()) {
             // Remove trailing zero byte.
             byteSlice.limit(byteSlice.limit() - 1);
           }
 
-          return new Maybe<>(Optional.of(elementDecoder.decode(byteSlice)));
+          return Optional.of(elementDecoder.decode(byteSlice));
         }
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for a {@link Structure} type.
+   * Creates a {@link Decoder} for a {@code Structure} type.
    *
    * @param recordType the {@link Record} type that represents the components of the structure.
    * @param componentDecoders a {@link Decoder} for each component of the structure.
    * @param <U> the {@link Record} type that represents the components of the structure.
    * @return a new {@link Decoder}.
    */
-  @SafeVarargs
-  public static <U extends Record> Decoder<Structure<U>> ofStructure(
-      Class<U> recordType, Decoder<? extends Value>... componentDecoders) {
+  public static <U extends Record> Decoder<U> ofStructure(
+      Class<U> recordType, Decoder<?>... componentDecoders) {
     var recordComponents = recordType.getRecordComponents();
     if (componentDecoders.length != recordComponents.length) {
       throw new IllegalArgumentException(
@@ -251,7 +239,7 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Structure<U> decode(ByteBuffer byteSlice) {
+      public U decode(ByteBuffer byteSlice) {
         int framingOffsetSize = byteCount(byteSlice.limit());
 
         var recordConstructorArguments = new Object[recordComponents.length];
@@ -296,7 +284,7 @@ public abstract class Decoder<T extends Value> {
                   .map(RecordComponent::getType)
                   .toArray(Class<?>[]::new);
           var recordConstructor = recordType.getDeclaredConstructor(recordComponentTypes);
-          return new Structure<>(recordConstructor.newInstance(recordConstructorArguments));
+          return recordConstructor.newInstance(recordConstructorArguments);
         } catch (NoSuchMethodException
             | InstantiationException
             | IllegalAccessException
@@ -334,11 +322,11 @@ public abstract class Decoder<T extends Value> {
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Bool} type.
+   * Creates a {@link Decoder} for the {@code Boolean} type.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Bool> ofBool() {
+  public static Decoder<Boolean> ofBoolean() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -351,21 +339,21 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Bool decode(ByteBuffer byteSlice) {
-        return new Bool(byteSlice.get() != 0);
+      public Boolean decode(ByteBuffer byteSlice) {
+        return byteSlice.get() != 0;
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Int8} type.
+   * Creates a {@link Decoder} for the 8-bit {@ode byte} type.
    *
    * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
    * result of this method.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Int8> ofInt8() {
+  public static Decoder<Byte> ofByte() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -378,21 +366,21 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Int8 decode(ByteBuffer byteSlice) {
-        return new Int8(byteSlice.get());
+      public Byte decode(ByteBuffer byteSlice) {
+        return byteSlice.get();
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Int16} type.
+   * Creates a {@link Decoder} for the 16-bit {@code short} type.
    *
    * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
    * result of this method.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Int16> ofInt16() {
+  public static Decoder<Short> ofShort() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -405,21 +393,21 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Int16 decode(ByteBuffer byteSlice) {
-        return new Int16(byteSlice.getShort());
+      public Short decode(ByteBuffer byteSlice) {
+        return byteSlice.getShort();
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Int32} type.
+   * Creates a {@link Decoder} for the 32-bit {@code int} type.
    *
    * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
    * result of this method.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Int32> ofInt32() {
+  public static Decoder<Integer> ofInt() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -432,21 +420,21 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Int32 decode(ByteBuffer byteSlice) {
-        return new Int32(byteSlice.getInt());
+      public Integer decode(ByteBuffer byteSlice) {
+        return byteSlice.getInt();
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Int64} type.
+   * Creates a {@link Decoder} for the 64-bit {@code long} type.
    *
    * <p><strong>Note:</strong> It is often useful to apply {@link #withByteOrder(ByteOrder)} to the
    * result of this method.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Int64> ofInt64() {
+  public static Decoder<Long> ofLong() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -459,18 +447,18 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Int64 decode(ByteBuffer byteSlice) {
-        return new Int64(byteSlice.getLong());
+      public Long decode(ByteBuffer byteSlice) {
+        return byteSlice.getLong();
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Float64} type.
+   * Creates a {@link Decoder} for the {@code double} type.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Float64> ofFloat64() {
+  public static Decoder<Double> ofDouble() {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -483,21 +471,21 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Float64 decode(ByteBuffer byteSlice) {
-        return new Float64(byteSlice.getDouble());
+      public Double decode(ByteBuffer byteSlice) {
+        return byteSlice.getDouble();
       }
     };
   }
 
   /**
-   * Creates a {@link Decoder} for the {@link Str} type.
+   * Creates a {@link Decoder} for the {@link String} type.
    *
    * <p><strong>Note:</strong> While GVariant does not prescribe any particular encoding, {@link
    * java.nio.charset.StandardCharsets#UTF_8} is the most common choice.
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Str> ofStr(Charset charset) {
+  public static Decoder<String> ofString(Charset charset) {
     return new Decoder<>() {
       @Override
       public byte alignment() {
@@ -511,9 +499,9 @@ public abstract class Decoder<T extends Value> {
       }
 
       @Override
-      public Str decode(ByteBuffer byteSlice) {
+      public String decode(ByteBuffer byteSlice) {
         byteSlice.limit(byteSlice.limit() - 1);
-        return new Str(charset.decode(byteSlice).toString());
+        return charset.decode(byteSlice).toString();
       }
     };
   }
