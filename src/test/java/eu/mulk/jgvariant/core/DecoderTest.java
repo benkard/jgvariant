@@ -1,10 +1,12 @@
 package eu.mulk.jgvariant.core;
 
+import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -256,5 +258,165 @@ class DecoderTest {
         Decoder.ofStructure(
             TestEntry.class, Decoder.ofString(UTF_8), Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
     assertEquals(new TestEntry("a key", 514), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testPaddedPrimitives() {
+    var data =
+        new byte[] {
+          0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x40, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        };
+
+    record TestRecord(short s, long l, double d) {}
+
+    var decoder =
+        Decoder.ofStructure(
+            TestRecord.class,
+            Decoder.ofShort().withByteOrder(BIG_ENDIAN),
+            Decoder.ofLong().withByteOrder(LITTLE_ENDIAN),
+            Decoder.ofDouble());
+    assertEquals(new TestRecord((short) 1, 2, 3.25), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testEmbeddedMaybe() {
+    var data = new byte[] {0x01, 0x01};
+
+    record TestRecord(Optional<Byte> set, Optional<Byte> unset) {}
+
+    var decoder =
+        Decoder.ofStructure(
+            TestRecord.class, Decoder.ofMaybe(Decoder.ofByte()), Decoder.ofMaybe(Decoder.ofByte()));
+    assertEquals(
+        new TestRecord(Optional.of((byte) 1), Optional.empty()),
+        decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testRecordComponentMismatch() {
+    record TestRecord(Optional<Byte> set) {}
+
+    var maybeDecoder = Decoder.ofMaybe(Decoder.ofByte());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Decoder.ofStructure(TestRecord.class, maybeDecoder, maybeDecoder));
+  }
+
+  @Test
+  void testTrivialRecord() {
+    var data = new byte[] {0x00};
+
+    record TestRecord() {}
+
+    var decoder = Decoder.ofStructure(TestRecord.class);
+    assertEquals(new TestRecord(), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testTwoElementTrivialRecordArray() {
+    var data = new byte[] {0x00, 0x00};
+
+    record TestRecord() {}
+
+    var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
+    assertEquals(
+        List.of(new TestRecord(), new TestRecord()), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testSingletonTrivialRecordArray() {
+    var data = new byte[] {0x00};
+
+    record TestRecord() {}
+
+    var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
+    assertEquals(List.of(new TestRecord()), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testEmptyTrivialRecordArray() {
+    var data = new byte[] {};
+
+    record TestRecord() {}
+
+    var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
+    assertEquals(List.of(), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testVariantArray() {
+    var data = new byte[] {};
+
+    record TestRecord() {}
+
+    var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
+    assertEquals(List.of(), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testInvalidVariantSignature() {
+    var data = new byte[] {0x00, 0x00, 0x2E};
+
+    var decoder = Decoder.ofVariant();
+    assertThrows(IllegalArgumentException.class, () -> decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testMissingVariantSignature() {
+    var data = new byte[] {0x01};
+
+    var decoder = Decoder.ofVariant();
+    assertThrows(IllegalArgumentException.class, () -> decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testSimpleVariantRecord() {
+    // signature: "(bynqiuxtdsogvmiai)"
+    var data =
+        new byte[] {
+          0x01, // b
+          0x02, // y
+          0x00, 0x03, // n
+          0x00, 0x04, // q
+          0x00, 0x00, // (padding)
+          0x00, 0x00, 0x00, 0x05, // i
+          0x00, 0x00, 0x00, 0x06, // u
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, // x
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, // t
+          0x40, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // d
+          0x68, 0x69, 0x00, // s
+          0x68, 0x69, 0x00, // o
+          0x68, 0x69, 0x00, // g
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // (padding)
+          0x00, 0x00, 0x00, 0x09, 0x00, 0x69, // v
+          0x00, 0x00, // (padding)
+          0x00, 0x00, 0x00, 0x0a, // mi
+          0x00, 0x00, 0x00, 0x0b, 0x00, 0x00, 0x00, 0x0c, // ai
+          68, 62, 49, 46, 43, // framing offsets
+          0x00, 0x28, 0x62, 0x79, 0x6E, 0x71, 0x69, 0x75, 0x78, 0x74, 0x64, 0x73, 0x6F, 0x67, 0x76,
+          0x6D, 0x69, 0x61, 0x69, 0x29
+        };
+
+    var decoder = Decoder.ofVariant();
+    assertArrayEquals(
+        new Object[] {
+          true,
+          (byte) 2,
+          (short) 3,
+          (short) 4,
+          (int) 5,
+          (int) 6,
+          (long) 7,
+          (long) 8,
+          (double) 3.25,
+          "hi",
+          "hi",
+          "hi",
+          9,
+          Optional.of(10),
+          List.of(11, 12)
+        },
+        (Object[]) decoder.decode(ByteBuffer.wrap(data)));
   }
 }
