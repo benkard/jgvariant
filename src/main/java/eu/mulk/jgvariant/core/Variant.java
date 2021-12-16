@@ -15,11 +15,12 @@ package eu.mulk.jgvariant.core;
  *   <li>{@link java.util.Optional} (a GVariant {@code Maybe} type)
  *   <li>{@link java.util.List} (a GVariant array)
  *   <li>{@link Object[]} (a GVariant structure)
+ *   <li>{@link Variant} (a nested variant)
  * </ul>
  *
  * @param signature the signature describing the type of the value.
  * @param value the value itself; one of {@link Boolean}, {@link Byte}, {@link Short}, {@link
  *     Integer}, {@link Long}, {@link String}, {@link java.util.Optional}, {@link java.util.List},
- *     {@link Object[]}.
+ *     {@link Object[]}, {@link Variant}.
  */
 public record Variant(Signature signature, Object value) {}

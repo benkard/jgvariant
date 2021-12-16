@@ -141,9 +141,9 @@ public abstract class Decoder<T> {
   }
 
   /**
-   * Creates a {@link Decoder} for the {@code Variant} type.
+   * Creates a {@link Decoder} for the {@link Variant} type.
    *
-   * <p>The returned {@link Object} can be of one of the following types:
+   * <p>The contained {@link Object} can be of one of the following types:
    *
    * <ul>
    *   <li>{@link Boolean}
@@ -155,6 +155,7 @@ public abstract class Decoder<T> {
    *   <li>{@link Optional} (a GVariant {@code Maybe} type)
    *   <li>{@link List} (a GVariant array)
    *   <li>{@link Object[]} (a GVariant structure)
+   *   <li>{@link Variant} (a nested variant)
    * </ul>
    *
    * @return a new {@link Decoder}.
@@ -164,7 +165,7 @@ public abstract class Decoder<T> {
   }
 
   /**
-   * Creates a {@link Decoder} for the {@code Boolean} type.
+   * Creates a {@link Decoder} for the {@code boolean} type.
    *
    * @return a new {@link Decoder}.
    */
