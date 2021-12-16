@@ -7,7 +7,7 @@ import java.lang.reflect.RecordComponent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,8 +47,11 @@ public abstract class Decoder<T> {
   private Decoder() {}
 
   /**
+   * Decodes a {@link ByteBuffer} holding a serialized GVariant into a value of type {@code T}.
+   *
    * @throws java.nio.BufferUnderflowException if the byte buffer is shorter than the requested
    *     data.
+   * @throws IllegalArgumentException if the serialized GVariant is ill-formed
    */
   public abstract T decode(ByteBuffer byteSlice);
 
@@ -156,7 +159,7 @@ public abstract class Decoder<T> {
    *
    * @return a new {@link Decoder}.
    */
-  public static Decoder<Object> ofVariant() {
+  public static Decoder<Variant> ofVariant() {
     return new VariantDecoder();
   }
 
@@ -464,7 +467,7 @@ public abstract class Decoder<T> {
     }
   }
 
-  private static class VariantDecoder extends Decoder<Object> {
+  private static class VariantDecoder extends Decoder<Variant> {
 
     @Override
     public byte alignment() {
@@ -478,55 +481,26 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Object decode(ByteBuffer byteSlice) {
+    public Variant decode(ByteBuffer byteSlice) {
       for (int i = byteSlice.limit() - 1; i >= 0; --i) {
         if (byteSlice.get(i) != 0) {
           continue;
         }
 
-        var data = byteSlice.slice(0, i);
-        var signature = byteSlice.slice(i + 1, byteSlice.limit() - (i + 1));
+        var dataBytes = byteSlice.slice(0, i);
+        var signatureBytes = byteSlice.slice(i + 1, byteSlice.limit() - (i + 1));
 
-        Decoder<?> decoder = parseSignature(signature);
-        return decoder.decode(data);
+        Signature signature;
+        try {
+          signature = Signature.parse(signatureBytes);
+        } catch (ParseException e) {
+          throw new IllegalArgumentException(e);
+        }
+
+        return new Variant(signature, signature.decoder().decode(dataBytes));
       }
 
       throw new IllegalArgumentException("variant signature not found");
-    }
-
-    private static Decoder<?> parseSignature(ByteBuffer signature) {
-      char c = (char) signature.get();
-      return switch (c) {
-        case 'b' -> Decoder.ofBoolean();
-        case 'y' -> Decoder.ofByte();
-        case 'n', 'q' -> Decoder.ofShort();
-        case 'i', 'u' -> Decoder.ofInt();
-        case 'x', 't' -> Decoder.ofLong();
-        case 'd' -> Decoder.ofDouble();
-        case 's', 'o', 'g' -> Decoder.ofString(StandardCharsets.UTF_8);
-        case 'v' -> Decoder.ofVariant();
-        case 'm' -> Decoder.ofMaybe(parseSignature(signature));
-        case 'a' -> Decoder.ofArray(parseSignature(signature));
-        case '(', '{' -> Decoder.ofStructure(parseTupleTypes(signature).toArray(new Decoder<?>[0]));
-        default -> throw new IllegalArgumentException(
-            String.format("encountered unknown signature byte '%c'", c));
-      };
-    }
-
-    private static List<Decoder<?>> parseTupleTypes(ByteBuffer signature) {
-      List<Decoder<?>> decoders = new ArrayList<>();
-
-      while (true) {
-        char c = (char) signature.get(signature.position());
-        if (c == ')' || c == '}') {
-          signature.get();
-          break;
-        }
-
-        decoders.add(parseSignature(signature));
-      }
-
-      return decoders;
     }
   }
 

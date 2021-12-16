@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -138,9 +139,11 @@ class DecoderTest {
         };
 
     var decoder = Decoder.ofVariant();
-    var result = (Object[]) decoder.decode(ByteBuffer.wrap(data));
+    var variant = decoder.decode(ByteBuffer.wrap(data));
+    var result = (Object[]) variant.value();
 
     assertAll(
+        () -> assertEquals(Signature.parse("((ys)as)"), variant.signature()),
         () -> assertEquals(2, result.length),
         () -> assertArrayEquals(new Object[] {(byte) 0x69, "can"}, (Object[]) result[0]),
         () -> assertEquals(List.of("has", "strings?"), result[1]));
@@ -371,7 +374,7 @@ class DecoderTest {
   }
 
   @Test
-  void testSimpleVariantRecord() {
+  void testSimpleVariantRecord() throws ParseException {
     // signature: "(bynqiuxtdsogvmiai)"
     var data =
         new byte[] {
@@ -413,10 +416,22 @@ class DecoderTest {
           "hi",
           "hi",
           "hi",
-          9,
+          new Variant(Signature.parse("i"), 9),
           Optional.of(10),
           List.of(11, 12)
         },
-        (Object[]) decoder.decode(ByteBuffer.wrap(data)));
+        (Object[]) decoder.decode(ByteBuffer.wrap(data)).value());
+  }
+
+  @Test
+  void testSignatureString() throws ParseException {
+    var data =
+        new byte[] {
+          0x28, 0x62, 0x79, 0x6E, 0x71, 0x69, 0x75, 0x78, 0x74, 0x64, 0x73, 0x6F, 0x67, 0x76, 0x6D,
+          0x69, 0x61, 0x69, 0x29
+        };
+
+    var signature = Signature.parse(ByteBuffer.wrap(data));
+    assertEquals("(bynqiuxtdsogvmiai)", signature.toString());
   }
 }
