@@ -126,11 +126,21 @@
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${surefire-plugin.version}</version>
+          <configuration>
+            <argLine>
+              --add-opens eu.mulk.jgvariant.core/eu.mulk.jgvariant.core=ALL-UNNAMED
+            </argLine>
+          </configuration>
         </plugin>
 
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${failsafe-plugin.version}</version>
+          <configuration>
+            <argLine>
+              --add-opens eu.mulk.jgvariant.core/eu.mulk.jgvariant.core=ALL-UNNAMED
+            </argLine>
+          </configuration>
         </plugin>
 
         <plugin>
