@@ -1,5 +1,8 @@
 package eu.mulk.jgvariant.core;
 
+import org.apiguardian.api.API;
+import org.apiguardian.api.API.Status;
+
 /**
  * A dynamically typed GVariant value carrying a {@link Signature} describing its type.
  *
@@ -23,4 +26,5 @@ package eu.mulk.jgvariant.core;
  *     Integer}, {@link Long}, {@link String}, {@link java.util.Optional}, {@link java.util.List},
  *     {@link Object[]}, {@link Variant}.
  */
+@API(status = Status.EXPERIMENTAL)
 public record Variant(Signature signature, Object value) {}

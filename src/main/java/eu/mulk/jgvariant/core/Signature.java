@@ -6,6 +6,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.apiguardian.api.API;
+import org.apiguardian.api.API.Status;
 
 /**
  * A GVariant signature string.
@@ -24,6 +26,7 @@ import java.util.Objects;
  *       an array of 32-bit integers
  * </dl>
  */
+@API(status = Status.STABLE)
 public final class Signature {
 
   private final String signatureString;

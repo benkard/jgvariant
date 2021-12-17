@@ -8,6 +8,7 @@
 module eu.mulk.jgvariant.core {
   requires com.google.errorprone.annotations;
   requires org.jetbrains.annotations;
+  requires org.apiguardian.api;
 
   exports eu.mulk.jgvariant.core;
 }

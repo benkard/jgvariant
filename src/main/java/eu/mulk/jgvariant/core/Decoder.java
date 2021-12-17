@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.apiguardian.api.API;
+import org.apiguardian.api.API.Status;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T> the type that the {@link Decoder} can decode.
  */
 @SuppressWarnings("java:S1610")
+@API(status = Status.EXPERIMENTAL)
 public abstract class Decoder<T> {
 
   private Decoder() {}
