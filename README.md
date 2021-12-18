@@ -5,14 +5,46 @@ This library provides a [GVariant][] parser in pure Java.
 
 ## Overview
 
-The foundational class is `Decoder`.
-
-Instances of `Decoder` read a given concrete subtype of `Value` from a
-[ByteBuffer][].  The class also contains factory methods to create
-those instances.
+Instances of `Decoder<T>` read a given type of GVariant-encoded value
+from a [ByteBuffer][].  The class also contains factory methods to
+acquire those instances.
 
 The various subclasses of `Decoder` together implement the [GVariant
 serialization][] specification.
+
+
+## Installation
+
+### Usage with Maven
+
+    <project>
+      ...
+    
+      <dependencies>
+        ...
+    
+        <dependency>
+          <groupId>eu.mulk.jgvariant</groupId>
+          <artifactId>jgvariant-core</artifactId>
+          <version>0.1.0</version>
+        </dependency>
+    
+        ...
+      </dependencies>
+    
+      ...
+    </project>
+
+
+### Usage with Gradle
+
+    dependencies {
+      ...
+    
+      implementation("eu.mulk.jgvariant:jgvariant-core:0.1.0")
+    
+      ...
+    }
 
 
 ## Example
