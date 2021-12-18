@@ -44,7 +44,7 @@ pairs of [String][] and `int`, you can use the following code:
         <dependency>
           <groupId>eu.mulk.jgvariant</groupId>
           <artifactId>jgvariant-core</artifactId>
-          <version>0.1.0</version>
+          <version>0.1.3</version>
         </dependency>
     
         ...
@@ -59,7 +59,7 @@ pairs of [String][] and `int`, you can use the following code:
     dependencies {
       ...
     
-      implementation("eu.mulk.jgvariant:jgvariant-core:0.1.0")
+      implementation("eu.mulk.jgvariant:jgvariant-core:0.1.3")
     
       ...
     }
