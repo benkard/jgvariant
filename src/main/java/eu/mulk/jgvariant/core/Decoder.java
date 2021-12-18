@@ -164,7 +164,7 @@ public abstract class Decoder<T> {
    *   <li>{@link String}
    *   <li>{@link Optional} (a GVariant {@code Maybe} type)
    *   <li>{@link List} (a GVariant array)
-   *   <li>{@link Object[]} (a GVariant structure)
+   *   <li>{@code Object[]} (a GVariant structure)
    *   <li>{@link Variant} (a nested variant)
    * </ul>
    *
