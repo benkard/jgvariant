@@ -8,28 +8,31 @@
 
   <version>0.1.4-SNAPSHOT</version>
 
-  <artifactId>jgvariant-bundle</artifactId>
+  <artifactId>jgvariant-bom</artifactId>
   <packaging>pom</packaging>
 
-  <name>JGVariant Bundle</name>
+  <name>JGVariant Bill of Materials</name>
 
   <description>
-    JGVariant library bundle.
+    Bill of Materials for the JGVariant library.
   </description>
 
   <parent>
     <groupId>eu.mulk.jgvariant</groupId>
     <artifactId>jgvariant-parent</artifactId>
     <version>0.1.4-SNAPSHOT</version>
-    <relativePath>jgvariant-parent/pom.xml</relativePath>
+    <relativePath>../jgvariant-parent/pom.xml</relativePath>
   </parent>
 
-  <modules>
-    <module>jgvariant-parent</module>
-
-    <module>jgvariant-core</module>
-
-    <module>jgvariant-bom</module>
-  </modules>
+  <dependencyManagement>
+    <dependencies>
+      <!-- JGVariant -->
+      <dependency>
+        <groupId>eu.mulk.jgvariant</groupId>
+        <artifactId>jgvariant-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 </project>

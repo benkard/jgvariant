@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <version>0.1.4-SNAPSHOT</version>
+
+  <artifactId>jgvariant-core</artifactId>
+  <packaging>jar</packaging>
+
+  <name>JGVariant Core</name>
+  <url>https://gerrit.benkard.de/plugins/gitiles/jgvariant</url>
+
+  <description>
+    GVariant serialization and deserialization.
+  </description>
+
+  <parent>
+    <groupId>eu.mulk.jgvariant</groupId>
+    <artifactId>jgvariant-parent</artifactId>
+    <version>0.1.4-SNAPSHOT</version>
+    <relativePath>../jgvariant-parent/pom.xml</relativePath>
+  </parent>
+
+  <dependencies>
+    <!-- Annotations -->
+    <dependency>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apiguardian</groupId>
+      <artifactId>apiguardian-api</artifactId>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

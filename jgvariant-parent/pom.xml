@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <version>0.1.4-SNAPSHOT</version>
+
+  <groupId>eu.mulk.jgvariant</groupId>
+  <artifactId>jgvariant-parent</artifactId>
+  <packaging>pom</packaging>
+
+  <name>JGVariant Parent</name>
+  <url>https://gerrit.benkard.de/plugins/gitiles/jgvariant</url>
+
+  <description>
+    Parent POM of the JGVariant library.
+  </description>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License v3.0 or later</name>
+      <url>https://www.gnu.org/licenses/lgpl-3.0.html</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Matthias Benkard</name>
+      <email>code@mulk.eu</email>
+      <organization>Matthias Benkard</organization>
+      <organizationUrl>https://matthias.benkard.de</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://gerrit.benkard.de/jgvariant</connection>
+    <developerConnection>scm:git:ssh://gerrit.benkard.de:29418/jgvariant</developerConnection>
+    <url>https://gerrit.benkard.de/plugins/gitiles/jgvariant</url>
+  </scm>
+
+  <properties>
+    <maven.compiler.parameters>true</maven.compiler.parameters>
+    <maven.compiler.release>17</maven.compiler.release>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
+    <jar-plugin.version>3.2.0</jar-plugin.version>
+    <maven-scm-plugin.version>1.12.0</maven-scm-plugin.version>
+    <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
+    <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+    <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+    <nexus-staging-plugin.version>1.6.8</nexus-staging-plugin.version>
+    <spotless-plugin.version>2.17.6</spotless-plugin.version>
+    <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+    <versions-plugin.version>2.8.1</versions-plugin.version>
+
+    <apiguardian.version>1.1.2</apiguardian.version>
+    <errorprone.version>2.10.0</errorprone.version>
+    <google-java-format.version>1.13.0</google-java-format.version>
+    <jetbrains-annotations.version>22.0.0</jetbrains-annotations.version>
+    <junit-jupiter.version>5.8.2</junit-jupiter.version>
+  </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Annotations -->
+      <dependency>
+        <groupId>com.google.errorprone</groupId>
+        <artifactId>error_prone_annotations</artifactId>
+        <version>${errorprone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains</groupId>
+        <artifactId>annotations</artifactId>
+        <version>${jetbrains-annotations.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apiguardian</groupId>
+        <artifactId>apiguardian-api</artifactId>
+        <version>${apiguardian.version}</version>
+      </dependency>
+
+      <!-- Testing -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+
+    <pluginManagement>
+
+      <plugins>
+
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${surefire-plugin.version}</version>
+          <configuration>
+            <argLine>
+              --add-opens eu.mulk.jgvariant.core/eu.mulk.jgvariant.core=ALL-UNNAMED
+            </argLine>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${failsafe-plugin.version}</version>
+          <configuration>
+            <argLine>
+              --add-opens eu.mulk.jgvariant.core/eu.mulk.jgvariant.core=ALL-UNNAMED
+            </argLine>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${compiler-plugin.version}</version>
+          <configuration>
+            <fork>true</fork>
+            <compilerArgs>
+              <arg>-XDcompilePolicy=simple</arg>
+              <arg>-Xplugin:ErrorProne</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+              <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+              <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+            </compilerArgs>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_core</artifactId>
+                <version>${errorprone.version}</version>
+              </path>
+            </annotationProcessorPaths>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${jar-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>${versions-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-plugin</artifactId>
+          <version>${maven-scm-plugin.version}</version>
+          <configuration>
+            <tag>v${project.version}</tag>
+            <connectionType>developerConnection</connectionType>
+          </configuration>
+        </plugin>
+
+      </plugins>
+
+    </pluginManagement>
+
+    <plugins>
+
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless-plugin.version}</version>
+        <configuration>
+          <java>
+            <removeUnusedImports/>
+            <importOrder>
+              <order>java,javax,org,com,de,io,dagger,eu.mulk,</order>
+            </importOrder>
+            <googleJavaFormat>
+              <version>${google-java-format.version}</version>
+              <style>GOOGLE</style>
+            </googleJavaFormat>
+          </java>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>${nexus-staging-plugin.version}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <profile>
+      <id>release</id>
+
+      <build>
+        <plugins>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven-source-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven-javadoc-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-plugin.version}</version>
+            <configuration>
+              <keyname>code@mulk.eu</keyname>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+
+</project>

@@ -38,13 +38,28 @@ pairs of [String][] and `int`, you can use the following code:
     <project>
       ...
     
+      <dependencyManagement>
+        ...
+    
+        <dependencies>
+          <dependency>
+            <groupId>eu.mulk.jgvariant</groupId>
+            <artifactId>jgvariant-bom</artifactId>
+            <version>0.1.4</version>
+            <type>pom</type>
+            <scope>import</scope>
+          </dependency>
+        </dependencies>
+    
+        ...
+      </dependencyManagement>
+    
       <dependencies>
         ...
     
         <dependency>
           <groupId>eu.mulk.jgvariant</groupId>
           <artifactId>jgvariant-core</artifactId>
-          <version>0.1.3</version>
         </dependency>
     
         ...
@@ -59,7 +74,8 @@ pairs of [String][] and `int`, you can use the following code:
     dependencies {
       ...
     
-      implementation("eu.mulk.jgvariant:jgvariant-core:0.1.3")
+      implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.4")
+      implementation("eu.mulk.jgvariant:jgvariant-core")
     
       ...
     }
