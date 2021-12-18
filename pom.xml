@@ -74,34 +74,22 @@
     </snapshotRepository>
   </distributionManagement>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.google.errorprone</groupId>
-        <artifactId>error_prone_annotations</artifactId>
-        <version>${errorprone.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
     <!-- Annotations -->
     <dependency>
       <groupId>com.google.errorprone</groupId>
       <artifactId>error_prone_annotations</artifactId>
-      <optional>true</optional>
+      <version>${errorprone.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
       <version>${jetbrains-annotations.version}</version>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apiguardian</groupId>
       <artifactId>apiguardian-api</artifactId>
       <version>${apiguardian.version}</version>
-      <optional>true</optional>
     </dependency>
 
     <!-- Testing -->
