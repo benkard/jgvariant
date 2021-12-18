@@ -52,6 +52,13 @@ public abstract class Decoder<T> {
   /**
    * Decodes a {@link ByteBuffer} holding a serialized GVariant into a value of type {@code T}.
    *
+   * <p><strong>Note:</strong> Due to the way the GVariant serialization format works, it is
+   * important that the start and end boundaries of the passed byte slice correspond to the actual
+   * start and end of the serialized value. The format does generally not allow for the dynamic
+   * discovery of the end of the data structure.
+   *
+   * @param byteSlice a byte slice holding a serialized GVariant.
+   * @return the deserialized value.
    * @throws java.nio.BufferUnderflowException if the byte buffer is shorter than the requested
    *     data.
    * @throws IllegalArgumentException if the serialized GVariant is ill-formed
@@ -239,6 +246,7 @@ public abstract class Decoder<T> {
    * <p><strong>Note:</strong> While GVariant does not prescribe any particular encoding, {@link
    * java.nio.charset.StandardCharsets#UTF_8} is the most common choice.
    *
+   * @param charset the {@link Charset} the string is encoded in.
    * @return a new {@link Decoder}.
    */
   public static Decoder<String> ofString(Charset charset) {
