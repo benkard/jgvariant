@@ -28,6 +28,7 @@
     <module>jgvariant-parent</module>
 
     <module>jgvariant-core</module>
+    <module>jgvariant-ostree</module>
 
     <module>jgvariant-bom</module>
   </modules>

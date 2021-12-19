@@ -1,0 +1,4 @@
+[core]
+repo_version=1
+mode=bare
+indexed-deltas=true

@@ -63,6 +63,7 @@
     <apiguardian.version>1.1.2</apiguardian.version>
     <errorprone.version>2.10.0</errorprone.version>
     <google-java-format.version>1.13.0</google-java-format.version>
+    <inject-resources.version>0.3.0</inject-resources.version>
     <jetbrains-annotations.version>22.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
   </properties>
@@ -104,6 +105,12 @@
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
         <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.hosuaby</groupId>
+        <artifactId>inject-resources-junit-jupiter</artifactId>
+        <version>${inject-resources.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

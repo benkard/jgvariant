@@ -242,6 +242,26 @@ class DecoderTest {
   }
 
   @Test
+  void testPrimitiveByteArray() {
+    var data = new byte[] {0x04, 0x05, 0x06, 0x07};
+
+    var decoder = Decoder.ofByteArray();
+
+    assertArrayEquals(data, decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testPrimitiveByteArrayRecord() {
+    var data = new byte[] {0x04, 0x05, 0x06, 0x07};
+
+    record TestRecord(byte[] bytes) {}
+
+    var decoder = Decoder.ofStructure(TestRecord.class, Decoder.ofByteArray());
+
+    assertArrayEquals(data, decoder.decode(ByteBuffer.wrap(data)).bytes());
+  }
+
+  @Test
   void testIntegerArray() {
     var data = new byte[] {0x04, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00};
 
@@ -433,5 +453,12 @@ class DecoderTest {
 
     var signature = Signature.parse(ByteBuffer.wrap(data));
     assertEquals("(bynqiuxtdsogvmiai)", signature.toString());
+  }
+
+  @Test
+  void testMap() {
+    var data = new byte[] {0x0A, 0x0B, 0x0C};
+    var decoder = Decoder.ofByteArray().map(bytes -> bytes.length);
+    assertEquals(3, decoder.decode(ByteBuffer.wrap(data)));
   }
 }

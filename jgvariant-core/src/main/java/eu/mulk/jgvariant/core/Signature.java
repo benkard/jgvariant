@@ -43,7 +43,7 @@ public final class Signature {
     return new Signature(signatureBytes);
   }
 
-  static Signature parse(String signatureString) throws ParseException {
+  public static Signature parse(String signatureString) throws ParseException {
     var signatureBytes = ByteBuffer.wrap(signatureString.getBytes(StandardCharsets.US_ASCII));
     return parse(signatureBytes);
   }

@@ -61,6 +61,10 @@ pairs of [String][] and `int`, you can use the following code:
           <groupId>eu.mulk.jgvariant</groupId>
           <artifactId>jgvariant-core</artifactId>
         </dependency>
+        <dependency>
+          <groupId>eu.mulk.jgvariant</groupId>
+          <artifactId>jgvariant-ostree</artifactId>
+        </dependency>
     
         ...
       </dependencies>
@@ -76,6 +80,7 @@ pairs of [String][] and `int`, you can use the following code:
     
       implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.4")
       implementation("eu.mulk.jgvariant:jgvariant-core")
+      implementation("eu.mulk.jgvariant:jgvariant-ostree")
     
       ...
     }

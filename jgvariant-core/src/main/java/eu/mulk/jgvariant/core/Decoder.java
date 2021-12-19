@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +81,7 @@ public abstract class Decoder<T> {
    * @param byteOrder the byte order to use.
    * @return a new, decorated {@link Decoder}.
    */
-  public Decoder<T> withByteOrder(ByteOrder byteOrder) {
+  public final Decoder<T> withByteOrder(ByteOrder byteOrder) {
     var delegate = this;
 
     return new Decoder<>() {
@@ -103,6 +104,34 @@ public abstract class Decoder<T> {
   }
 
   /**
+   * Creates a new {@link Decoder} from an existing one by applying a function to the result.
+   *
+   * @param function the function to apply.
+   * @return a new, decorated {@link Decoder}.
+   * @see java.util.stream.Stream#map
+   */
+  public final <U> Decoder<U> map(Function<T, U> function) {
+    var delegate = this;
+
+    return new Decoder<>() {
+      @Override
+      public byte alignment() {
+        return delegate.alignment();
+      }
+
+      @Override
+      public @Nullable Integer fixedSize() {
+        return delegate.fixedSize();
+      }
+
+      @Override
+      public U decode(ByteBuffer byteSlice) {
+        return function.apply(delegate.decode(byteSlice));
+      }
+    };
+  }
+
+  /**
    * Creates a {@link Decoder} for an {@code Array} type.
    *
    * @param elementDecoder a {@link Decoder} for the elements of the array.
@@ -111,6 +140,16 @@ public abstract class Decoder<T> {
    */
   public static <U> Decoder<List<U>> ofArray(Decoder<U> elementDecoder) {
     return new ArrayDecoder<>(elementDecoder);
+  }
+
+  /**
+   * Creates a {@link Decoder} for an {@code Array} type of element type {@code byte} into a
+   * primitive {@code byte[]} array.
+   *
+   * @return a new {@link Decoder}.
+   */
+  public static Decoder<byte[]> ofByteArray() {
+    return new ByteArrayDecoder();
   }
 
   /**
@@ -299,6 +338,9 @@ public abstract class Decoder<T> {
           var element = elementDecoder.decode(byteSlice.slice(i, elementSize));
           elements.add(element);
         }
+      } else if (byteSlice.limit() == 0) {
+        // A degenerate zero-length array of variable width.
+        elements = List.of();
       } else {
         // An array with aligned elements and a vector of framing offsets in the end.
         int framingOffsetSize = byteCount(byteSlice.limit());
@@ -317,6 +359,30 @@ public abstract class Decoder<T> {
         }
       }
 
+      return elements;
+    }
+  }
+
+  private static class ByteArrayDecoder extends Decoder<byte[]> {
+
+    private static final int ELEMENT_SIZE = 1;
+
+    @Override
+    public byte alignment() {
+      return ELEMENT_SIZE;
+    }
+
+    @Override
+    @Nullable
+    Integer fixedSize() {
+      return null;
+    }
+
+    @Override
+    public byte[] decode(ByteBuffer byteSlice) {
+      // A simple C-style array.
+      byte[] elements = new byte[byteSlice.limit() / ELEMENT_SIZE];
+      byteSlice.get(elements);
       return elements;
     }
   }

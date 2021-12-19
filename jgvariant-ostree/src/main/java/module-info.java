@@ -9,9 +9,9 @@
  *
  * <h2 id="sect-overview">Overview</h2>
  *
- * <p>The {@link eu.mulk.jgvariant.core} package contains the {@link eu.mulk.jgvariant.core.Decoder}
- * type, which contains classes to parse and represent serialized <a
- * href="https://docs.gtk.org/glib/struct.Variant.html">GVariant</a> values.
+ * <p>The {@link eu.mulk.jgvariant.ostree} package contains record classes describing the elements
+ * of <a href="https://ostreedev.github.io/ostree/">OSTree</a> repositories and factory methods to
+ * create {@link eu.mulk.jgvariant.core.Decoder} instances for them.
  *
  * <h2 id="sect-installation">Installation</h2>
  *
@@ -75,10 +75,11 @@
  * }
  * }</pre>
  */
-module eu.mulk.jgvariant.core {
+module eu.mulk.jgvariant.gvariant {
+  requires transitive eu.mulk.jgvariant.core;
   requires com.google.errorprone.annotations;
   requires org.jetbrains.annotations;
   requires org.apiguardian.api;
 
-  exports eu.mulk.jgvariant.core;
+  exports eu.mulk.jgvariant.ostree;
 }
