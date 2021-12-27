@@ -18,6 +18,7 @@ import org.apiguardian.api.API.Status;
  *   <li>{@link java.util.Optional} (a GVariant {@code Maybe} type)
  *   <li>{@link java.util.List} (a GVariant array)
  *   <li>{@code Object[]} (a GVariant structure)
+ *   <li>{@link java.util.Map.Entry} (a dictionary entry)
  *   <li>{@link Variant} (a nested variant)
  * </ul>
  *

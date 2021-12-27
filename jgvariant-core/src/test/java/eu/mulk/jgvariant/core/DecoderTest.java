@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -271,7 +272,18 @@ class DecoderTest {
   }
 
   @Test
-  void testDictionaryEntry() {
+  void testDictionaryEntryAsMapEntry() {
+    var data =
+        new byte[] {0x61, 0x20, 0x6B, 0x65, 0x79, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x06};
+
+    var decoder =
+        Decoder.ofDictionaryEntry(
+            Decoder.ofString(UTF_8), Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
+    assertEquals(Map.entry("a key", 514), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testDictionaryEntryAsRecord() {
     var data =
         new byte[] {0x61, 0x20, 0x6B, 0x65, 0x79, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x06};
 

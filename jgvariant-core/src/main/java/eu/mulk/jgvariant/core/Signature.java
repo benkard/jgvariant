@@ -92,7 +92,17 @@ public final class Signature {
       case 'v' -> Decoder.ofVariant();
       case 'm' -> Decoder.ofMaybe(parseSignature(signature));
       case 'a' -> Decoder.ofArray(parseSignature(signature));
-      case '(', '{' -> Decoder.ofStructure(parseTupleTypes(signature).toArray(new Decoder<?>[0]));
+      case '(' -> Decoder.ofStructure(parseTupleTypes(signature).toArray(new Decoder<?>[0]));
+      case '{' -> {
+        var tupleTypes = parseTupleTypes(signature);
+        if (tupleTypes.size() != 2) {
+          throw new ParseException(
+              String.format(
+                  "dictionary entry type with %d components, expected 2", tupleTypes.size()),
+              signature.position());
+        }
+        yield Decoder.ofDictionaryEntry(tupleTypes.get(0), tupleTypes.get(1));
+      }
       default -> throw new ParseException(
           String.format("encountered unknown signature byte '%c'", c), signature.position());
     };

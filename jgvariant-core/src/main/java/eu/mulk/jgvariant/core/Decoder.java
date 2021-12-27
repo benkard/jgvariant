@@ -8,9 +8,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import org.apiguardian.api.API;
@@ -155,6 +157,19 @@ public abstract class Decoder<T> {
   }
 
   /**
+   * Creates a {@link Decoder} for a {@code Dictionary Entry} type, decoding into a {@link
+   * Map.Entry}.
+   *
+   * @param keyDecoder a {@link Decoder} for the key component of the dictionary entry.
+   * @param valueDecoder a {@link Decoder} for the value component of the dictionary entry.
+   * @return a new {@link Decoder}.
+   */
+  public static <K, V> Decoder<Map.Entry<K, V>> ofDictionaryEntry(
+      Decoder<K> keyDecoder, Decoder<V> valueDecoder) {
+    return new DictionaryEntryDecoder<>(keyDecoder, valueDecoder);
+  }
+
+  /**
    * Creates a {@link Decoder} for the {@link Variant} type.
    *
    * <p>The contained {@link Object} can be of one of the following types:
@@ -169,6 +184,7 @@ public abstract class Decoder<T> {
    *   <li>{@link Optional} (a GVariant {@code Maybe} type)
    *   <li>{@link List} (a GVariant array)
    *   <li>{@code Object[]} (a GVariant structure)
+   *   <li>{@link java.util.Map.Entry} (a dictionary entry)
    *   <li>{@link Variant} (a nested variant)
    * </ul>
    *
@@ -512,6 +528,32 @@ public abstract class Decoder<T> {
       }
 
       return objects;
+    }
+  }
+
+  private static class DictionaryEntryDecoder<K, V> extends Decoder<Map.Entry<K, V>> {
+
+    private final TupleDecoder tupleDecoder;
+
+    DictionaryEntryDecoder(Decoder<K> keyDecoder, Decoder<V> valueDecoder) {
+      this.tupleDecoder = new TupleDecoder(keyDecoder, valueDecoder);
+    }
+
+    @Override
+    public byte alignment() {
+      return tupleDecoder.alignment();
+    }
+
+    @Override
+    public Integer fixedSize() {
+      return tupleDecoder.fixedSize();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map.Entry<K, V> decode(ByteBuffer byteSlice) {
+      Object[] components = tupleDecoder.decode(byteSlice);
+      return new SimpleImmutableEntry<>((K) components[0], (V) components[1]);
     }
   }
 
