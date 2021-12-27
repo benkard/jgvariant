@@ -82,25 +82,7 @@ public abstract class Decoder<T> {
    * @return a new, decorated {@link Decoder}.
    */
   public final Decoder<T> withByteOrder(ByteOrder byteOrder) {
-    var delegate = this;
-
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return delegate.alignment();
-      }
-
-      @Override
-      public @Nullable Integer fixedSize() {
-        return delegate.fixedSize();
-      }
-
-      @Override
-      public T decode(ByteBuffer byteSlice) {
-        byteSlice.order(byteOrder);
-        return delegate.decode(byteSlice);
-      }
-    };
+    return new ByteOrderFixingDecoder(byteOrder);
   }
 
   /**
@@ -111,24 +93,7 @@ public abstract class Decoder<T> {
    * @see java.util.stream.Stream#map
    */
   public final <U> Decoder<U> map(Function<T, U> function) {
-    var delegate = this;
-
-    return new Decoder<>() {
-      @Override
-      public byte alignment() {
-        return delegate.alignment();
-      }
-
-      @Override
-      public @Nullable Integer fixedSize() {
-        return delegate.fixedSize();
-      }
-
-      @Override
-      public U decode(ByteBuffer byteSlice) {
-        return function.apply(delegate.decode(byteSlice));
-      }
-    };
+    return new MappingDecoder<>(function);
   }
 
   /**
@@ -335,7 +300,7 @@ public abstract class Decoder<T> {
         // A simple C-style array.
         elements = new ArrayList<>(byteSlice.limit() / elementSize);
         for (int i = 0; i < byteSlice.limit(); i += elementSize) {
-          var element = elementDecoder.decode(byteSlice.slice(i, elementSize));
+          var element = elementDecoder.decode(slicePreservingOrder(byteSlice, i, elementSize));
           elements.add(element);
         }
       } else if (byteSlice.limit() == 0) {
@@ -354,7 +319,9 @@ public abstract class Decoder<T> {
           int framingOffset =
               getIntN(
                   byteSlice.slice(lastFramingOffset + i * framingOffsetSize, framingOffsetSize));
-          elements.add(elementDecoder.decode(byteSlice.slice(position, framingOffset - position)));
+          elements.add(
+              elementDecoder.decode(
+                  slicePreservingOrder(byteSlice, position, framingOffset - position)));
           position = align(framingOffset, alignment());
         }
       }
@@ -516,14 +483,16 @@ public abstract class Decoder<T> {
         var fixedComponentSize = componentDecoder.fixedSize();
         if (fixedComponentSize != null) {
           objects[componentIndex] =
-              componentDecoder.decode(byteSlice.slice(position, fixedComponentSize));
+              componentDecoder.decode(
+                  slicePreservingOrder(byteSlice, position, fixedComponentSize));
           position += fixedComponentSize;
         } else {
           if (componentIndex == componentDecoders.length - 1) {
             // The last component never has a framing offset.
             int endPosition = byteSlice.limit() - framingOffsetIndex * framingOffsetSize;
             objects[componentIndex] =
-                componentDecoder.decode(byteSlice.slice(position, endPosition - position));
+                componentDecoder.decode(
+                    slicePreservingOrder(byteSlice, position, endPosition - position));
             position = endPosition;
           } else {
             int framingOffset =
@@ -532,7 +501,8 @@ public abstract class Decoder<T> {
                         byteSlice.limit() - (1 + framingOffsetIndex) * framingOffsetSize,
                         framingOffsetSize));
             objects[componentIndex] =
-                componentDecoder.decode(byteSlice.slice(position, framingOffset - position));
+                componentDecoder.decode(
+                    slicePreservingOrder(byteSlice, position, framingOffset - position));
             position = framingOffset;
             ++framingOffsetIndex;
           }
@@ -565,7 +535,7 @@ public abstract class Decoder<T> {
           continue;
         }
 
-        var dataBytes = byteSlice.slice(0, i);
+        var dataBytes = slicePreservingOrder(byteSlice, 0, i);
         var signatureBytes = byteSlice.slice(i + 1, byteSlice.limit() - (i + 1));
 
         Signature signature;
@@ -714,5 +684,59 @@ public abstract class Decoder<T> {
       byteSlice.limit(byteSlice.limit() - 1);
       return charset.decode(byteSlice).toString();
     }
+  }
+
+  private class MappingDecoder<U> extends Decoder<U> {
+
+    private final Function<T, U> function;
+
+    public MappingDecoder(Function<T, U> function) {
+      this.function = function;
+    }
+
+    @Override
+    public byte alignment() {
+      return Decoder.this.alignment();
+    }
+
+    @Override
+    public @Nullable Integer fixedSize() {
+      return Decoder.this.fixedSize();
+    }
+
+    @Override
+    public U decode(ByteBuffer byteSlice) {
+      return function.apply(Decoder.this.decode(byteSlice));
+    }
+  }
+
+  private class ByteOrderFixingDecoder extends Decoder<T> {
+
+    private final ByteOrder byteOrder;
+
+    public ByteOrderFixingDecoder(ByteOrder byteOrder) {
+      this.byteOrder = byteOrder;
+    }
+
+    @Override
+    public byte alignment() {
+      return Decoder.this.alignment();
+    }
+
+    @Override
+    public @Nullable Integer fixedSize() {
+      return Decoder.this.fixedSize();
+    }
+
+    @Override
+    public T decode(ByteBuffer byteSlice) {
+      var newByteSlice = byteSlice.duplicate();
+      newByteSlice.order(byteOrder);
+      return Decoder.this.decode(newByteSlice);
+    }
+  }
+
+  private static ByteBuffer slicePreservingOrder(ByteBuffer byteSlice, int index, int length) {
+    return byteSlice.slice(index, length).order(byteSlice.order());
   }
 }
