@@ -10,6 +10,7 @@ import eu.mulk.jgvariant.core.Signature;
 import eu.mulk.jgvariant.core.Variant;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -57,10 +58,9 @@ class OstreeDecoderTest {
                             Checksum.ofHex(
                                 "66ff167ff35ce87daac817447a9490a262ee75f095f017716a6eb1a9d9eb3350"),
                             new Metadata(
-                                List.of(
-                                    new Metadata.Field(
-                                        "ostree.commit.timestamp",
-                                        new Variant(Signature.parse("t"), 1640537170L))))))),
+                                Map.of(
+                                    "ostree.commit.timestamp",
+                                    new Variant(Signature.parse("t"), 1640537170L)))))),
                 summary.entries()));
     // FIXME: check metadata field
     System.out.println(summary);
