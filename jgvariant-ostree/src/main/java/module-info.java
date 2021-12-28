@@ -1,6 +1,5 @@
 /**
- * Provides a parser for the <a href="https://docs.gtk.org/glib/struct.Variant.html">GVariant</a>
- * serialization format.
+ * {@link eu.mulk.jgvariant.core.Decoder} instances for OSTree repositories.
  *
  * <ul>
  *   <li><a href="#sect-overview">Overview</a>

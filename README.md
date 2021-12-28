@@ -5,12 +5,15 @@ This library provides a [GVariant][] parser in pure Java.
 
 ## Overview
 
-Instances of `Decoder<T>` read a given type of GVariant-encoded value
-from a [ByteBuffer][].  The class also contains factory methods to
-acquire those instances.
+`jgvariant-core` provides `Decoder<T>`, which read a given type of
+GVariant-encoded value from a [ByteBuffer][].  The class also contains
+factory methods to acquire those instances.
 
 The various subclasses of `Decoder` together implement the [GVariant
 serialization][] specification.
+
+`jgvariant-ostree` provides instances of `Decoder<T>` for various
+[GVariant][] types used in [OSTree][] repositories.
 
 
 ## Example
@@ -89,4 +92,5 @@ pairs of [String][] and `int`, you can use the following code:
 [ByteBuffer]: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html
 [GVariant]: https://docs.gtk.org/glib/struct.Variant.html
 [GVariant serialization]: https://people.gnome.org/~desrt/gvariant-serialisation.pdf
+[OSTree]: https://ostreedev.github.io/ostree/
 [String]: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
