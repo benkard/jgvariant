@@ -91,21 +91,35 @@ public final class Signature {
       case 's', 'o', 'g' -> Decoder.ofString(StandardCharsets.UTF_8);
       case 'v' -> Decoder.ofVariant();
       case 'm' -> Decoder.ofMaybe(parseSignature(signature));
-      case 'a' -> Decoder.ofArray(parseSignature(signature));
       case '(' -> Decoder.ofStructure(parseTupleTypes(signature).toArray(new Decoder<?>[0]));
-      case '{' -> {
-        var tupleTypes = parseTupleTypes(signature);
-        if (tupleTypes.size() != 2) {
-          throw new ParseException(
-              String.format(
-                  "dictionary entry type with %d components, expected 2", tupleTypes.size()),
-              signature.position());
+      case 'a' -> {
+        char elementC = (char) signature.get(signature.position());
+        if (elementC == '{') {
+          signature.get();
+          List<Decoder<?>> entryTypes = parseDictionaryEntryTypes(signature);
+          yield Decoder.ofDictionary(entryTypes.get(0), entryTypes.get(1));
+        } else {
+          yield Decoder.ofArray(parseSignature(signature));
         }
-        yield Decoder.ofDictionaryEntry(tupleTypes.get(0), tupleTypes.get(1));
+      }
+      case '{' -> {
+        List<Decoder<?>> entryTypes = parseDictionaryEntryTypes(signature);
+        yield Decoder.ofDictionaryEntry(entryTypes.get(0), entryTypes.get(1));
       }
       default -> throw new ParseException(
           String.format("encountered unknown signature byte '%c'", c), signature.position());
     };
+  }
+
+  private static List<Decoder<?>> parseDictionaryEntryTypes(ByteBuffer signature)
+      throws ParseException {
+    var tupleTypes = parseTupleTypes(signature);
+    if (tupleTypes.size() != 2) {
+      throw new ParseException(
+          String.format("dictionary entry type with %d components, expected 2", tupleTypes.size()),
+          signature.position());
+    }
+    return tupleTypes;
   }
 
   private static List<Decoder<?>> parseTupleTypes(ByteBuffer signature) throws ParseException {

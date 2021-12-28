@@ -198,6 +198,7 @@ public abstract class Decoder<T> {
    *   <li>{@link Optional} (a GVariant {@code Maybe} type)
    *   <li>{@link List} (a GVariant array)
    *   <li>{@code Object[]} (a GVariant structure)
+   *   <li>{@link java.util.Map} (a dictionary)
    *   <li>{@link java.util.Map.Entry} (a dictionary entry)
    *   <li>{@link Variant} (a nested variant)
    * </ul>
