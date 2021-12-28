@@ -1,6 +1,7 @@
 package eu.mulk.jgvariant.core;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static java.util.stream.Collectors.toMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 import org.apiguardian.api.API;
@@ -107,6 +109,18 @@ public abstract class Decoder<T> {
    */
   public static <U> Decoder<List<U>> ofArray(Decoder<U> elementDecoder) {
     return new ArrayDecoder<>(elementDecoder);
+  }
+
+  /**
+   * Creates a {@link Decoder} for a {@code Dictionary} type.
+   *
+   * @param keyDecoder a {@link Decoder} for the key component of the dictionary entry.
+   * @param valueDecoder a {@link Decoder} for the value component of the dictionary entry.
+   * @return a new {@link Decoder}.
+   */
+  public static <K, V> Decoder<Map<K, V>> ofDictionary(
+      Decoder<K> keyDecoder, Decoder<V> valueDecoder) {
+    return new DictionaryDecoder<>(keyDecoder, valueDecoder);
   }
 
   /**
@@ -343,6 +357,32 @@ public abstract class Decoder<T> {
       }
 
       return elements;
+    }
+  }
+
+  private static class DictionaryDecoder<K, V> extends Decoder<Map<K, V>> {
+
+    private final ArrayDecoder<Map.Entry<K, V>> entryArrayDecoder;
+
+    DictionaryDecoder(Decoder<K> keyDecoder, Decoder<V> valueDecoder) {
+      this.entryArrayDecoder =
+          new ArrayDecoder<>(new DictionaryEntryDecoder<>(keyDecoder, valueDecoder));
+    }
+
+    @Override
+    public byte alignment() {
+      return entryArrayDecoder.alignment();
+    }
+
+    @Override
+    public Integer fixedSize() {
+      return entryArrayDecoder.fixedSize();
+    }
+
+    @Override
+    public Map<K, V> decode(ByteBuffer byteSlice) {
+      List<Map.Entry<K, V>> entries = entryArrayDecoder.decode(byteSlice);
+      return entries.stream().collect(toMap(Entry::getKey, Entry::getValue));
     }
   }
 

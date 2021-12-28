@@ -99,6 +99,40 @@ class DecoderTest {
   }
 
   @Test
+  void testDictionary() {
+    var data =
+        new byte[] {
+          0x68,
+          0x69,
+          0x00,
+          0x00,
+          (byte) 0xfe,
+          (byte) 0xff,
+          (byte) 0xff,
+          (byte) 0xff,
+          0x03,
+          0x00,
+          0x00,
+          0x00,
+          0x62,
+          0x79,
+          0x65,
+          0x00,
+          (byte) 0xff,
+          (byte) 0xff,
+          (byte) 0xff,
+          (byte) 0xff,
+          0x04,
+          0x09,
+          0x15
+        };
+
+    var decoder =
+        Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
+    assertEquals(Map.of("hi", -2, "bye", -1), decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
   void testStringArray() {
     var data =
         new byte[] {
