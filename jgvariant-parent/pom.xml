@@ -128,6 +128,7 @@
           <configuration>
             <argLine>
               --add-opens eu.mulk.jgvariant.core/eu.mulk.jgvariant.core=ALL-UNNAMED
+              --add-opens eu.mulk.jgvariant.ostree/eu.mulk.jgvariant.ostree=ALL-UNNAMED
             </argLine>
           </configuration>
         </plugin>
@@ -138,6 +139,7 @@
           <configuration>
             <argLine>
               --add-opens eu.mulk.jgvariant.core/eu.mulk.jgvariant.core=ALL-UNNAMED
+              --add-opens eu.mulk.jgvariant.ostree/eu.mulk.jgvariant.ostree=ALL-UNNAMED
             </argLine>
           </configuration>
         </plugin>

@@ -74,7 +74,7 @@
  * }
  * }</pre>
  */
-module eu.mulk.jgvariant.gvariant {
+module eu.mulk.jgvariant.ostree {
   requires transitive eu.mulk.jgvariant.core;
   requires com.google.errorprone.annotations;
   requires org.jetbrains.annotations;
