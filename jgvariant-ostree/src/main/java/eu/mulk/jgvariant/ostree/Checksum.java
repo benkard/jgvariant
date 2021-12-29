@@ -16,6 +16,10 @@ public record Checksum(ByteString byteString) {
   private static final Decoder<Checksum> DECODER = ByteString.decoder().map(Checksum::new);
 
   public Checksum {
+    if (byteString.size() == 0) {
+      byteString = zero().byteString;
+    }
+
     if (byteString.size() != SIZE) {
       throw new IllegalArgumentException(
           "attempted to construct Checksum of length %d (expected: %d)"
