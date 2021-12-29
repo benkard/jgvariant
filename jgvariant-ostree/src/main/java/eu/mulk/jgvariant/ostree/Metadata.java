@@ -6,9 +6,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * A wrapper for a list of metadata fields.
+ * A wrapper for a set of metadata fields.
  *
  * <p>Reference: (embedded in other data types)
+ *
+ * @param fields a set of metadata fields indexed by name.
  */
 public record Metadata(Map<String, Variant> fields) {
 
@@ -16,6 +18,11 @@ public record Metadata(Map<String, Variant> fields) {
       Decoder.ofDictionary(Decoder.ofString(StandardCharsets.UTF_8), Decoder.ofVariant())
           .map(Metadata::new);
 
+  /**
+   * Acquires a {@link Decoder} for the enclosing type.
+   *
+   * @return a possibly shared {@link Decoder}.
+   */
   public static Decoder<Metadata> decoder() {
     return DECODER;
   }

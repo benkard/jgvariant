@@ -11,6 +11,8 @@ import java.util.Map;
  * <p>Stored as a file named {@code summary.sig} in the OSTree repository root.
  *
  * <p>Reference: {@code ostree-repo-static-delta-private.h#OSTREE_SUMMARY_SIG_GVARIANT_STRING}
+ *
+ * @param signatures a list of signatures, indexed by type.
  */
 public record SummarySignature(Map<String, Variant> signatures) {
 
@@ -18,6 +20,11 @@ public record SummarySignature(Map<String, Variant> signatures) {
       Decoder.ofDictionary(Decoder.ofString(StandardCharsets.UTF_8), Decoder.ofVariant())
           .map(SummarySignature::new);
 
+  /**
+   * Acquires a {@link Decoder} for the enclosing type.
+   *
+   * @return a possibly shared {@link Decoder}.
+   */
   public static Decoder<SummarySignature> decoder() {
     return DECODER;
   }
