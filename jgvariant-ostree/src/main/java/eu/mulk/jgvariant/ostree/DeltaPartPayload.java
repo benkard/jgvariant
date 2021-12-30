@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.List;
 import org.tukaani.xz.XZInputStream;
 
@@ -30,15 +31,6 @@ public record DeltaPartPayload(
     List<List<Xattr>> xattrs,
     ByteString rawDataSource,
     List<DeltaOperation> operations) {
-
-  private static final Decoder<DeltaPartPayload> DECODER =
-      Decoder.ofStructure(
-              DeltaPartPayload.class,
-              Decoder.ofArray(FileMode.decoder()),
-              Decoder.ofArray(Decoder.ofArray(Xattr.decoder())),
-              ByteString.decoder(),
-              ByteString.decoder().map(DeltaPartPayload::parseDeltaOperationList))
-          .contramap(DeltaPartPayload::preparse);
 
   private static ByteBuffer preparse(ByteBuffer byteBuffer) {
     byte compressionByte = byteBuffer.get(0);
@@ -65,25 +57,40 @@ public record DeltaPartPayload(
     };
   }
 
-  private static List<DeltaOperation> parseDeltaOperationList(ByteString byteString) {
-    return byteString.stream().map(DeltaOperation::valueOf).toList();
+  private static List<DeltaOperation> parseDeltaOperationList(
+      ByteString byteString, List<ObjectType> objectTypes) {
+    List<DeltaOperation> deltaOperations = new ArrayList<>();
+    var byteBuffer = ByteBuffer.wrap(byteString.bytes());
+    int objectIndex = 0;
+
+    while (byteBuffer.hasRemaining()) {
+      var currentOperation = DeltaOperation.readFrom(byteBuffer, objectTypes.get(objectIndex));
+      deltaOperations.add(currentOperation);
+      if (currentOperation instanceof DeltaOperation.Close
+          || currentOperation instanceof DeltaOperation.OpenSpliceAndCloseMeta
+          || currentOperation instanceof DeltaOperation.OpenSpliceAndCloseReal) {
+        ++objectIndex;
+      }
+    }
+
+    return deltaOperations;
   }
 
   /**
    * A file mode triple (UID, GID, and permission bits).
    *
-   * @param uid
-   * @param gid
-   * @param mode
+   * @param uid the user ID that owns the file.
+   * @param gid the group ID that owns the file.
+   * @param mode the POSIX permission bits.
    */
   public record FileMode(int uid, int gid, int mode) {
 
     private static final Decoder<FileMode> DECODER =
         Decoder.ofStructure(
             FileMode.class,
-            Decoder.ofInt().withByteOrder(ByteOrder.LITTLE_ENDIAN),
-            Decoder.ofInt().withByteOrder(ByteOrder.LITTLE_ENDIAN),
-            Decoder.ofInt().withByteOrder(ByteOrder.LITTLE_ENDIAN));
+            Decoder.ofInt().withByteOrder(ByteOrder.BIG_ENDIAN),
+            Decoder.ofInt().withByteOrder(ByteOrder.BIG_ENDIAN),
+            Decoder.ofInt().withByteOrder(ByteOrder.BIG_ENDIAN));
 
     /**
      * Acquires a {@link Decoder} for the enclosing type.
@@ -98,12 +105,18 @@ public record DeltaPartPayload(
   /**
    * Acquires a {@link Decoder} for the enclosing type.
    *
-   * <p>FIXME: The first byte is actually a compression byte: {@code 0} for none, {@code 'x'} for
-   * LZMA.
-   *
    * @return a possibly shared {@link Decoder}.
    */
-  public static Decoder<DeltaPartPayload> decoder() {
-    return DECODER;
+  public static Decoder<DeltaPartPayload> decoder(DeltaMetaEntry deltaMetaEntry) {
+    var objectTypes =
+        deltaMetaEntry.objects().stream().map(DeltaMetaEntry.DeltaObject::objectType).toList();
+    return Decoder.ofStructure(
+            DeltaPartPayload.class,
+            Decoder.ofArray(FileMode.decoder()),
+            Decoder.ofArray(Decoder.ofArray(Xattr.decoder())),
+            ByteString.decoder(),
+            ByteString.decoder()
+                .map(byteString -> parseDeltaOperationList(byteString, objectTypes)))
+        .contramap(DeltaPartPayload::preparse);
   }
 }

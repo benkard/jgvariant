@@ -11,7 +11,6 @@ import eu.mulk.jgvariant.core.Variant;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @TestWithResources
@@ -94,11 +93,14 @@ class OstreeDecoderTest {
     System.out.println(deltaSuperblock);
   }
 
-  @Disabled("invalid: compression byte not taken into account")
   @Test
   void testPartPayloadDecoder() {
-    var decoder = DeltaPartPayload.decoder();
+    var superblockDecoder = DeltaSuperblock.decoder();
+    var superblock = superblockDecoder.decode(ByteBuffer.wrap(deltaSuperblockBytes));
+
+    var decoder = DeltaPartPayload.decoder(superblock.entries().get(0));
     var deltaPartPayload = decoder.decode(ByteBuffer.wrap(deltaPartPayloadBytes));
+
     System.out.println(deltaPartPayload);
   }
 }
