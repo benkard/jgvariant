@@ -57,15 +57,41 @@ public record DeltaSuperblock(
 
   private static final Decoder<DeltaSuperblock> DECODER =
       Decoder.ofStructure(
-          DeltaSuperblock.class,
-          Metadata.decoder(),
-          Decoder.ofLong().withByteOrder(ByteOrder.BIG_ENDIAN),
-          Checksum.decoder(),
-          Checksum.decoder(),
-          Commit.decoder(),
-          Decoder.ofByteArray().map(DeltaSuperblock::parseDeltaNameList),
-          Decoder.ofArray(DeltaMetaEntry.decoder()),
-          Decoder.ofArray(DeltaFallback.decoder()));
+              DeltaSuperblock.class,
+              Metadata.decoder(),
+              Decoder.ofLong().withByteOrder(ByteOrder.BIG_ENDIAN),
+              Checksum.decoder(),
+              Checksum.decoder(),
+              Commit.decoder(),
+              Decoder.ofByteArray().map(DeltaSuperblock::parseDeltaNameList),
+              Decoder.ofArray(DeltaMetaEntry.decoder()).withByteOrder(ByteOrder.LITTLE_ENDIAN),
+              Decoder.ofArray(DeltaFallback.decoder()).withByteOrder(ByteOrder.LITTLE_ENDIAN))
+          .map(
+              deltaSuperblock -> {
+                // Fix up the endianness of the 'entries' and 'fallbacks' fields, which have
+                // unspecified byte order.
+                var endiannessMetadatum =
+                    deltaSuperblock.metadata().fields().get("ostree.endianness");
+                if (endiannessMetadatum != null
+                    && endiannessMetadatum.value() instanceof Byte endiannessByte
+                    && endiannessByte == (byte) 'B') {
+                  return deltaSuperblock.byteSwapped();
+                } else {
+                  return deltaSuperblock;
+                }
+              });
+
+  private DeltaSuperblock byteSwapped() {
+    return new DeltaSuperblock(
+        metadata,
+        timestamp,
+        fromChecksum,
+        toChecksum,
+        commit,
+        dependencies,
+        entries.stream().map(DeltaMetaEntry::byteSwapped).toList(),
+        fallbacks.stream().map(DeltaFallback::byteSwapped).toList());
+  }
 
   private static List<DeltaName> parseDeltaNameList(byte[] bytes) {
     var byteBuffer = ByteBuffer.wrap(bytes);

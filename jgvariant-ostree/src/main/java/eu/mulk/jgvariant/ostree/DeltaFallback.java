@@ -23,15 +23,21 @@ public record DeltaFallback(
           DeltaFallback.class,
           Decoder.ofByte().map(ObjectType::valueOf),
           Checksum.decoder(),
-          Decoder.ofLong().withByteOrder(ByteOrder.LITTLE_ENDIAN), // FIXME: non-canonical
-          Decoder.ofLong().withByteOrder(ByteOrder.LITTLE_ENDIAN)); // FIXME: non-canonical
+          Decoder.ofLong(),
+          Decoder.ofLong());
 
   /**
    * Acquires a {@link Decoder} for the enclosing type.
+   *
+   * <p><strong>Note:</strong> This decoder has an unspecified {@link ByteOrder}.
    *
    * @return a possibly shared {@link Decoder}.
    */
   public static Decoder<DeltaFallback> decoder() {
     return DECODER;
+  }
+
+  DeltaFallback byteSwapped() {
+    return new DeltaFallback(objectType, checksum, compressedSize, uncompressedSize);
   }
 }

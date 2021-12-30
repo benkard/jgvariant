@@ -49,10 +49,10 @@ public record DeltaMetaEntry(
   private static final Decoder<DeltaMetaEntry> DECODER =
       Decoder.ofStructure(
           DeltaMetaEntry.class,
-          Decoder.ofInt().withByteOrder(ByteOrder.LITTLE_ENDIAN), // FIXME: non-canonical
+          Decoder.ofInt(),
           Checksum.decoder(),
-          Decoder.ofLong().withByteOrder(ByteOrder.LITTLE_ENDIAN), // FIXME: non-canonical
-          Decoder.ofLong().withByteOrder(ByteOrder.LITTLE_ENDIAN), // FIXME: non-canonical
+          Decoder.ofLong(),
+          Decoder.ofLong(),
           Decoder.ofByteArray().map(DeltaMetaEntry::parseObjectList));
 
   private static List<DeltaObject> parseObjectList(byte[] bytes) {
@@ -71,9 +71,16 @@ public record DeltaMetaEntry(
   /**
    * Acquires a {@link Decoder} for the enclosing type.
    *
+   * <p><strong>Note:</strong> This decoder has an unspecified {@link ByteOrder}.
+   *
    * @return a possibly shared {@link Decoder}.
    */
   public static Decoder<DeltaMetaEntry> decoder() {
     return DECODER;
+  }
+
+  DeltaMetaEntry byteSwapped() {
+    // FIXME
+    return new DeltaMetaEntry(version, checksum, compressedSize, uncompressedSize, objects);
   }
 }
