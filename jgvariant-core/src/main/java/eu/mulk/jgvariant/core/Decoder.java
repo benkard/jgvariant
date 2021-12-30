@@ -15,8 +15,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +101,29 @@ public abstract class Decoder<T> {
    */
   public final <U> Decoder<U> map(Function<T, U> function) {
     return new MappingDecoder<>(function);
+  }
+
+  /**
+   * Creates a new {@link Decoder} from an existing one by applying a function to the input.
+   *
+   * @param function the function to apply.
+   * @return a new, decorated {@link Decoder}.
+   * @see java.util.stream.Stream#map
+   */
+  public final Decoder<T> contramap(UnaryOperator<ByteBuffer> function) {
+    return new ContramappingDecoder(function);
+  }
+
+  /**
+   * Creates a new {@link Decoder} that delegates to one of two other {@link Decoder}s based on a
+   * condition on the input {@link ByteBuffer}.
+   *
+   * @param selector the predicate to use to determine the decoder to use.
+   * @return a new {@link Decoder}.
+   */
+  public static <U> Decoder<U> ofPredicate(
+      Predicate<ByteBuffer> selector, Decoder<U> thenDecoder, Decoder<U> elseDecoder) {
+    return new PredicateDecoder<>(selector, thenDecoder, elseDecoder);
   }
 
   /**
@@ -773,7 +799,7 @@ public abstract class Decoder<T> {
 
     private final Function<T, U> function;
 
-    public MappingDecoder(Function<T, U> function) {
+    MappingDecoder(Function<T, U> function) {
       this.function = function;
     }
 
@@ -793,11 +819,36 @@ public abstract class Decoder<T> {
     }
   }
 
+  private class ContramappingDecoder extends Decoder<T> {
+
+    private final UnaryOperator<ByteBuffer> function;
+
+    ContramappingDecoder(UnaryOperator<ByteBuffer> function) {
+      this.function = function;
+    }
+
+    @Override
+    public byte alignment() {
+      return Decoder.this.alignment();
+    }
+
+    @Override
+    public @Nullable Integer fixedSize() {
+      return Decoder.this.fixedSize();
+    }
+
+    @Override
+    public T decode(ByteBuffer byteSlice) {
+      var transformedBuffer = function.apply(byteSlice.asReadOnlyBuffer().order(byteSlice.order()));
+      return Decoder.this.decode(transformedBuffer);
+    }
+  }
+
   private class ByteOrderFixingDecoder extends Decoder<T> {
 
     private final ByteOrder byteOrder;
 
-    public ByteOrderFixingDecoder(ByteOrder byteOrder) {
+    ByteOrderFixingDecoder(ByteOrder byteOrder) {
       this.byteOrder = byteOrder;
     }
 
@@ -821,5 +872,47 @@ public abstract class Decoder<T> {
 
   private static ByteBuffer slicePreservingOrder(ByteBuffer byteSlice, int index, int length) {
     return byteSlice.slice(index, length).order(byteSlice.order());
+  }
+
+  private static class PredicateDecoder<U> extends Decoder<U> {
+
+    private final Predicate<ByteBuffer> selector;
+    private final Decoder<U> thenDecoder;
+    private final Decoder<U> elseDecoder;
+
+    PredicateDecoder(
+        Predicate<ByteBuffer> selector, Decoder<U> thenDecoder, Decoder<U> elseDecoder) {
+      this.selector = selector;
+      this.thenDecoder = thenDecoder;
+      this.elseDecoder = elseDecoder;
+      if (thenDecoder.alignment() != elseDecoder.alignment()) {
+        throw new IllegalArgumentException(
+            "incompatible alignments in predicate branches: then=%d, else=%d"
+                .formatted(thenDecoder.alignment(), elseDecoder.alignment()));
+      }
+
+      if (!Objects.equals(thenDecoder.fixedSize(), elseDecoder.fixedSize())) {
+        throw new IllegalArgumentException(
+            "incompatible sizes in predicate branches: then=%s, else=%s"
+                .formatted(thenDecoder.fixedSize(), elseDecoder.fixedSize()));
+      }
+    }
+
+    @Override
+    public byte alignment() {
+      return thenDecoder.alignment();
+    }
+
+    @Override
+    public @Nullable Integer fixedSize() {
+      return thenDecoder.fixedSize();
+    }
+
+    @Override
+    public U decode(ByteBuffer byteSlice) {
+      var b = selector.test(byteSlice);
+      byteSlice.rewind();
+      return b ? thenDecoder.decode(byteSlice) : elseDecoder.decode(byteSlice);
+    }
   }
 }

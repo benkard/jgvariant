@@ -507,4 +507,71 @@ class DecoderTest {
     var decoder = Decoder.ofByteArray().map(bytes -> bytes.length);
     assertEquals(3, decoder.decode(ByteBuffer.wrap(data)));
   }
+
+  @Test
+  void testContramap() {
+    var data = new byte[] {0x0A, 0x0B, 0x0C};
+    var decoder = Decoder.ofByteArray().contramap(bytes -> bytes.slice(1, 1));
+    assertArrayEquals(new byte[] {0x0B}, decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testPredicateTrue() {
+    var data = new byte[] {0x00, 0x01, 0x00};
+    var innerDecoder = Decoder.ofShort().contramap(bytes -> bytes.slice(1, 2).order(bytes.order()));
+    var decoder =
+        Decoder.ofPredicate(
+            byteBuffer -> byteBuffer.get(0) == 0,
+            innerDecoder.withByteOrder(LITTLE_ENDIAN),
+            innerDecoder.withByteOrder(BIG_ENDIAN));
+    assertEquals((short) 1, decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testPredicateFalse() {
+    var data = new byte[] {0x01, 0x01, 0x00};
+    var innerDecoder = Decoder.ofShort().contramap(bytes -> bytes.slice(1, 2).order(bytes.order()));
+    var decoder =
+        Decoder.ofPredicate(
+            byteBuffer -> byteBuffer.get(0) == 0,
+            innerDecoder.withByteOrder(LITTLE_ENDIAN),
+            innerDecoder.withByteOrder(BIG_ENDIAN));
+    assertEquals((short) 256, decoder.decode(ByteBuffer.wrap(data)));
+  }
+
+  @Test
+  void testByteOrder() {
+    var data =
+        new byte[] {
+          0x01, 0x00, 0x02, 0x00, 0x00, 0x03, 0x00, 0x04, 0x05, 0x00, 0x00, 0x06, 0x00, 0x07, 0x08,
+          0x00
+        };
+
+    record TestChild(short s1, short s2) {}
+    record TestParent(TestChild tc1, TestChild tc2, TestChild tc3, TestChild tc4) {}
+
+    var decoder =
+        Decoder.ofStructure(
+            TestParent.class,
+            Decoder.ofStructure(TestChild.class, Decoder.ofShort(), Decoder.ofShort())
+                .withByteOrder(LITTLE_ENDIAN),
+            Decoder.ofStructure(TestChild.class, Decoder.ofShort(), Decoder.ofShort())
+                .withByteOrder(BIG_ENDIAN),
+            Decoder.ofStructure(
+                    TestChild.class,
+                    Decoder.ofShort().withByteOrder(LITTLE_ENDIAN),
+                    Decoder.ofShort())
+                .withByteOrder(BIG_ENDIAN),
+            Decoder.ofStructure(
+                    TestChild.class, Decoder.ofShort().withByteOrder(BIG_ENDIAN), Decoder.ofShort())
+                .withByteOrder(LITTLE_ENDIAN));
+
+    assertEquals(
+        new TestParent(
+            new TestChild((short) 1, (short) 2),
+            new TestChild((short) 3, (short) 4),
+            new TestChild((short) 5, (short) 6),
+            new TestChild((short) 7, (short) 8)),
+        decoder.decode(ByteBuffer.wrap(data)));
+  }
 }
