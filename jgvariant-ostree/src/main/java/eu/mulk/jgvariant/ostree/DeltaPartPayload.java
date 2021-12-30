@@ -1,6 +1,7 @@
 package eu.mulk.jgvariant.ostree;
 
 import eu.mulk.jgvariant.core.Decoder;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
@@ -27,11 +28,23 @@ public record DeltaPartPayload(
 
   private static final Decoder<DeltaPartPayload> DECODER =
       Decoder.ofStructure(
-          DeltaPartPayload.class,
-          Decoder.ofArray(FileMode.decoder()),
-          Decoder.ofArray(Decoder.ofArray(Xattr.decoder())),
-          ByteString.decoder(),
-          ByteString.decoder().map(DeltaPartPayload::parseDeltaOperationList));
+              DeltaPartPayload.class,
+              Decoder.ofArray(FileMode.decoder()),
+              Decoder.ofArray(Decoder.ofArray(Xattr.decoder())),
+              ByteString.decoder(),
+              ByteString.decoder().map(DeltaPartPayload::parseDeltaOperationList))
+          .contramap(DeltaPartPayload::preparse);
+
+  private static ByteBuffer preparse(ByteBuffer byteBuffer) {
+    byte compressionByte = byteBuffer.get(0);
+    return switch (compressionByte) {
+      case 0 -> byteBuffer.slice(1, byteBuffer.limit());
+      case (byte) 'x' -> throw new UnsupportedOperationException(
+          "LZMA compression of static deltas is unsupported");
+      default -> throw new IllegalArgumentException(
+          "unrecognized compression byte '%d'".formatted(compressionByte));
+    };
+  }
 
   private static List<DeltaOperation> parseDeltaOperationList(ByteString byteString) {
     return byteString.stream().map(DeltaOperation::valueOf).toList();
