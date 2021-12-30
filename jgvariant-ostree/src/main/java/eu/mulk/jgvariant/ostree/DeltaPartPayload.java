@@ -1,9 +1,14 @@
 package eu.mulk.jgvariant.ostree;
 
 import eu.mulk.jgvariant.core.Decoder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
+import org.tukaani.xz.XZInputStream;
 
 /**
  * A payload file from a static delta.
@@ -37,10 +42,24 @@ public record DeltaPartPayload(
 
   private static ByteBuffer preparse(ByteBuffer byteBuffer) {
     byte compressionByte = byteBuffer.get(0);
+    var dataSlice = byteBuffer.slice(1, byteBuffer.limit() - 1);
     return switch (compressionByte) {
-      case 0 -> byteBuffer.slice(1, byteBuffer.limit());
-      case (byte) 'x' -> throw new UnsupportedOperationException(
-          "LZMA compression of static deltas is unsupported");
+      case 0 -> dataSlice;
+      case (byte) 'x' -> {
+        try {
+          var dataBytes = new byte[dataSlice.limit()];
+          dataSlice.get(dataBytes);
+          var decompressingInputStream = new XZInputStream(new ByteArrayInputStream(dataBytes));
+
+          var decompressedOutputStream = new ByteArrayOutputStream();
+          decompressingInputStream.transferTo(decompressedOutputStream);
+
+          yield ByteBuffer.wrap(decompressedOutputStream.toByteArray());
+        } catch (IOException e) {
+          // impossible
+          throw new UncheckedIOException(e);
+        }
+      }
       default -> throw new IllegalArgumentException(
           "unrecognized compression byte '%d'".formatted(compressionByte));
     };

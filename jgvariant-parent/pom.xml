@@ -66,6 +66,7 @@
     <inject-resources.version>0.3.0</inject-resources.version>
     <jetbrains-annotations.version>22.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
+    <xz.version>1.9</xz.version>
   </properties>
 
   <distributionManagement>
@@ -92,6 +93,13 @@
         <groupId>org.apiguardian</groupId>
         <artifactId>apiguardian-api</artifactId>
         <version>${apiguardian.version}</version>
+      </dependency>
+
+      <!-- OSTree compression support -->
+      <dependency>
+        <groupId>org.tukaani</groupId>
+        <artifactId>xz</artifactId>
+        <version>1.9</version>
       </dependency>
 
       <!-- Testing -->

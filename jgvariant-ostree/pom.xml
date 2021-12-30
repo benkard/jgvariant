@@ -47,6 +47,12 @@
       <artifactId>apiguardian-api</artifactId>
     </dependency>
 
+    <!-- OSTree compression support -->
+    <dependency>
+      <groupId>org.tukaani</groupId>
+      <artifactId>xz</artifactId>
+    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
