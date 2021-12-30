@@ -33,7 +33,7 @@
  *       <dependency>
  *         <groupId>eu.mulk.jgvariant</groupId>
  *         <artifactId>jgvariant-bom</artifactId>
- *         <version>0.1.4</version>
+ *         <version>0.1.5</version>
  *         <type>pom</type>
  *         <scope>import</scope>
  *       </dependency>
@@ -67,7 +67,7 @@
  * dependencies {
  *   ...
  *
- *   implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.4")
+ *   implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.5")
  *   implementation("eu.mulk.jgvariant:jgvariant-core")
  *   implementation("eu.mulk.jgvariant:jgvariant-ostree")
  *
