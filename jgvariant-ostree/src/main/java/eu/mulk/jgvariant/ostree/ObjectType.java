@@ -24,12 +24,56 @@ import org.apiguardian.api.API;
  */
 @API(status = STABLE)
 public enum ObjectType {
+
+  /**
+   * A regular file.
+   *
+   * <p>File ending: {@code .file}
+   */
   FILE((byte) 1, "file"),
+
+  /**
+   * A serialized {@link DirTree} object.
+   *
+   * <p>File ending: {@code .dirtree}
+   */
   DIR_TREE((byte) 2, "dirtree"),
+
+  /**
+   * A serialized {@link DirMeta} object.
+   *
+   * <p>File ending: {@code .dirmeta}
+   */
   DIR_META((byte) 3, "dirmeta"),
+
+  /**
+   * A serialized {@link Commit} object.
+   *
+   * <p>File ending: {@code .commit}
+   */
   COMMIT((byte) 4, "commit"),
+
+  /**
+   * A tombstone file standing in for a commit that was deleted.
+   *
+   * <p>File ending: {@code .commit-tombstone}
+   */
   TOMBSTONE_COMMIT((byte) 5, "commit-tombstone"),
+
+  /**
+   * Detached metadata for a {@link Commit}.
+   *
+   * <p>Often goes together with a {@link #TOMBSTONE_COMMIT}.
+   *
+   * <p>File ending: {@code .commitmeta}
+   */
   COMMIT_META((byte) 6, "commitmeta"),
+
+  /**
+   * A symlink to a {@link #FILE} that lives somewhere else.
+   *
+   * <p>File ending: {@code .payload-link}
+   */
   PAYLOAD_LINK((byte) 7, "payload-link");
 
   private final byte byteValue;

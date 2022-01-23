@@ -2,6 +2,7 @@ package eu.mulk.jgvariant.ostree;
 
 import eu.mulk.jgvariant.core.Decoder;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HexFormat;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -59,6 +60,34 @@ public record ByteString(byte[] bytes) {
    */
   public static ByteString ofHex(String hex) {
     return new ByteString(HexFormat.of().parseHex(hex));
+  }
+
+  /**
+   * Converts the contained byte array into modified Base64 (with {@code "/"} replaced with {@code
+   * "-"}).
+   *
+   * <p>Modified Base64 is Base64 with {@code "/"} replaced with {@code "_"}. It is used to address
+   * static deltas in an OSTree repository.
+   *
+   * <p>Useful for printing.
+   *
+   * @return a modified Base64 representation of the bytes making up this checksum.
+   */
+  public String modifiedBase64() {
+    return Base64.getEncoder().withoutPadding().encodeToString(bytes).replace('/', '_');
+  }
+
+  /**
+   * Parses a modified Base64 string into a {@link Checksum}.
+   *
+   * <p>Modified Base64 is Base64 with {@code "/"} replaced with {@code "_"}. It is used to address
+   * static deltas in an OSTree repository.
+   *
+   * @param mbase64 a hex string.
+   * @return a {@link Checksum} corresponding to the given modified Base64 string.
+   */
+  public static ByteString ofModifiedBase64(String mbase64) {
+    return new ByteString(Base64.getDecoder().decode(mbase64.replace('_', '/')));
   }
 
   /**

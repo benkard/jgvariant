@@ -76,6 +76,34 @@ public record Checksum(ByteString byteString) {
   }
 
   /**
+   * Converts the contained byte array into modified Base64 (with {@code "/"} replaced with {@code
+   * "-"}).
+   *
+   * <p>Modified Base64 is Base64 with {@code "/"} replaced with {@code "_"}. It is used to address
+   * static deltas in an OSTree repository.
+   *
+   * <p>Useful for printing.
+   *
+   * @return a modified Base64 representation of the bytes making up this checksum.
+   */
+  public String modifiedBase64() {
+    return byteString.modifiedBase64();
+  }
+
+  /**
+   * Parses a modified Base64 string into a {@link Checksum}.
+   *
+   * <p>Modified Base64 is Base64 with {@code "/"} replaced with {@code "_"}. It is used to address
+   * static deltas in an OSTree repository.
+   *
+   * @param mbase64 a hex string.
+   * @return a {@link Checksum} corresponding to the given modified Base64 string.
+   */
+  public static Checksum ofModifiedBase64(String mbase64) {
+    return new Checksum(ByteString.ofModifiedBase64(mbase64));
+  }
+
+  /**
    * Reads a Checksum for a {@link ByteBuffer}.
    *
    * @param byteBuffer the byte buffer to read from.

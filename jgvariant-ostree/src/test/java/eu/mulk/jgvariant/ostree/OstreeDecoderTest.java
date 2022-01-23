@@ -2,7 +2,6 @@ package eu.mulk.jgvariant.ostree;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.adelean.inject.resources.junit.jupiter.GivenBinaryResource;
 import com.adelean.inject.resources.junit.jupiter.TestWithResources;
@@ -36,11 +35,6 @@ class OstreeDecoderTest {
 
   @GivenBinaryResource("/ostree/deltas/Mc/iDXVydLGaHpQCRyFFC0bLYU_9Bap+4G07jB1RRDVI/0")
   byte[] deltaPartPayloadBytes;
-
-  @Test
-  void testTrivial() {
-    assertTrue(true);
-  }
 
   @Test
   void testSummaryDecoder() {
