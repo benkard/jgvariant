@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: © 2021 Matthias Andreas Benkard <code@mail.matthias.benkard.de>
+//
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 /**
  * Provides {@link eu.mulk.jgvariant.core.Decoder}, the foundational class for <a
  * href="https://docs.gtk.org/glib/struct.Variant.html">GVariant</a> parsing.

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: © 2021 Matthias Andreas Benkard <code@mail.matthias.benkard.de>
+
+SPDX-License-Identifier: GFDL-1.3-or-later
+-->
+
 # GVariant for Java
 
 This library provides a [GVariant][] parser in pure Java.

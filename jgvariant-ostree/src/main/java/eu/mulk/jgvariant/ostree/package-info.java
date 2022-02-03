@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: © 2021 Matthias Andreas Benkard <code@mail.matthias.benkard.de>
+//
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 /**
  * Provides record classes describing the elements of <a
  * href="https://ostreedev.github.io/ostree/">OSTree</a> repositories and factory methods to create
@@ -45,17 +49,17 @@
  *         <dt>{@code {ext}}
  *         <dd>the {@link eu.mulk.jgvariant.ostree.ObjectType#fileExtension()} of the object type
  *       </dl>
- *   <dt id="delta-superblock">{@code objects/{μ₀μ₁}/{μ₂μ₃μ₄μ₅...}.{ext}}/superblock
+ *   <dt id="delta-superblock">{@code objects/{ν₀ν₁}/{ν₂ν₃ν₄ν₅...}.{ext}}/superblock
  *   <dd>
  *       <p>A {@link eu.mulk.jgvariant.ostree.DeltaSuperblock} to get from nothing (an empty commit)
  *       to the commit named by the checksum encoded in the path.
  *       <p>The individual parts of the file path are defined as follows:
  *       <dl>
- *         <dt>{@code {μ₀μ₁}}
+ *         <dt>{@code {ν₀ν₁}}
  *         <dd>the first two characters of {@link
  *             eu.mulk.jgvariant.ostree.Checksum#modifiedBase64()} of the target commit the delta
  *             ends at
- *         <dt>{@code {μ₂μ₃μ₄μ₅...}}
+ *         <dt>{@code {ν₂ν₃ν₄ν₅...}}
  *         <dd>the substring of {@link eu.mulk.jgvariant.ostree.Checksum#modifiedBase64()} of the
  *             target commit the delta ends at starting from the 3rd character
  *       </dl>
