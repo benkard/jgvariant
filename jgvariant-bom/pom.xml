@@ -42,4 +42,20 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     </dependencies>
   </dependencyManagement>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <configuration>
+          <flattenMode>bom</flattenMode>
+          <pomElements>
+            <properties>flatten</properties>
+            <distributionManagement>flatten</distributionManagement>
+          </pomElements>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

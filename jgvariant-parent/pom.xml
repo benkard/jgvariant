@@ -57,6 +57,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
 
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
+    <flatten-plugin.version>1.2.7</flatten-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
     <maven-scm-plugin.version>1.12.0</maven-scm-plugin.version>
     <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
@@ -231,6 +232,28 @@ SPDX-License-Identifier: LGPL-3.0-or-later
           </configuration>
         </plugin>
 
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>flatten-maven-plugin</artifactId>
+          <version>${flatten-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>flatten</id>
+              <phase>process-resources</phase>
+              <goals>
+                <goal>flatten</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>flatten.clean</id>
+              <phase>clean</phase>
+              <goals>
+                <goal>clean</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
       </plugins>
 
     </pluginManagement>
@@ -264,6 +287,18 @@ SPDX-License-Identifier: LGPL-3.0-or-later
           <serverId>ossrh</serverId>
           <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
           <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <configuration>
+          <flattenMode>oss</flattenMode>
+          <flattenDependencyMode>all</flattenDependencyMode>
+          <pomElements>
+            <distributionManagement>flatten</distributionManagement>
+          </pomElements>
         </configuration>
       </plugin>
 

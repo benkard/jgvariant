@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 *~
+.flattened-pom.xml
 /.idea
 /target
 /jgvariant-*/target
