@@ -17,6 +17,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 @TestWithResources
+@SuppressWarnings("initialization.field.uninitialized")
 class OstreeDecoderTest {
 
   @GivenBinaryResource("/ostree/summary")

@@ -74,6 +74,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <jetbrains-annotations.version>22.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <xz.version>1.9</xz.version>
+    <checker-framework.version>3.21.1</checker-framework.version>
   </properties>
 
   <distributionManagement>
@@ -100,6 +101,18 @@ SPDX-License-Identifier: LGPL-3.0-or-later
         <groupId>org.apiguardian</groupId>
         <artifactId>apiguardian-api</artifactId>
         <version>${apiguardian.version}</version>
+      </dependency>
+
+      <!-- Static analysis -->
+      <dependency>
+        <groupId>org.checkerframework</groupId>
+        <artifactId>checker</artifactId>
+        <version>${checker-framework.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.checkerframework</groupId>
+        <artifactId>checker-qual</artifactId>
+        <version>${checker-framework.version}</version>
       </dependency>
 
       <!-- OSTree compression support -->
@@ -130,6 +143,22 @@ SPDX-License-Identifier: LGPL-3.0-or-later
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <dependencies>
+    <!-- Static analysis -->
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker-qual</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
 
   <build>
 
@@ -166,8 +195,9 @@ SPDX-License-Identifier: LGPL-3.0-or-later
             <fork>true</fork>
             <compilerArgs>
               <arg>-XDcompilePolicy=simple</arg>
-              <arg>-Xplugin:ErrorProne</arg>
+              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
+              <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
@@ -184,7 +214,15 @@ SPDX-License-Identifier: LGPL-3.0-or-later
                 <artifactId>error_prone_core</artifactId>
                 <version>${errorprone.version}</version>
               </path>
+              <path>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker</artifactId>
+                <version>${checker-framework.version}</version>
+              </path>
             </annotationProcessorPaths>
+            <annotationProcessors>
+              <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+            </annotationProcessors>
           </configuration>
         </plugin>
 

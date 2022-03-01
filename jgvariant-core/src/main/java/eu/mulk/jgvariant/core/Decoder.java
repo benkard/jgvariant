@@ -26,6 +26,7 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -75,12 +76,11 @@ public abstract class Decoder<T> {
    *     data.
    * @throws IllegalArgumentException if the serialized GVariant is ill-formed
    */
-  public abstract T decode(ByteBuffer byteSlice);
+  public abstract @NotNull T decode(ByteBuffer byteSlice);
 
   abstract byte alignment();
 
-  @Nullable
-  abstract Integer fixedSize();
+  abstract @Nullable Integer fixedSize();
 
   final boolean hasFixedSize() {
     return fixedSize() != null;
@@ -103,7 +103,7 @@ public abstract class Decoder<T> {
    * @return a new, decorated {@link Decoder}.
    * @see java.util.stream.Stream#map
    */
-  public final <U> Decoder<U> map(Function<T, U> function) {
+  public final <U> Decoder<U> map(Function<@NotNull T, @NotNull U> function) {
     return new MappingDecoder<>(function);
   }
 
@@ -348,12 +348,12 @@ public abstract class Decoder<T> {
 
     @Override
     @Nullable
-    Integer fixedSize() {
+    public Integer fixedSize() {
       return null;
     }
 
     @Override
-    public List<U> decode(ByteBuffer byteSlice) {
+    public @NotNull List<U> decode(ByteBuffer byteSlice) {
       List<U> elements;
 
       var elementSize = elementDecoder.fixedSize();
@@ -406,12 +406,13 @@ public abstract class Decoder<T> {
     }
 
     @Override
+    @Nullable
     public Integer fixedSize() {
       return entryArrayDecoder.fixedSize();
     }
 
     @Override
-    public Map<K, V> decode(ByteBuffer byteSlice) {
+    public @NotNull Map<K, V> decode(ByteBuffer byteSlice) {
       List<Map.Entry<K, V>> entries = entryArrayDecoder.decode(byteSlice);
       return entries.stream().collect(toMap(Entry::getKey, Entry::getValue));
     }
@@ -433,7 +434,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public byte[] decode(ByteBuffer byteSlice) {
+    public byte @NotNull [] decode(ByteBuffer byteSlice) {
       // A simple C-style array.
       byte[] elements = new byte[byteSlice.limit() / ELEMENT_SIZE];
       byteSlice.get(elements);
@@ -461,7 +462,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Optional<U> decode(ByteBuffer byteSlice) {
+    public @NotNull Optional<U> decode(ByteBuffer byteSlice) {
       if (!byteSlice.hasRemaining()) {
         return Optional.empty();
       } else {
@@ -498,12 +499,12 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Integer fixedSize() {
+    public @Nullable Integer fixedSize() {
       return tupleDecoder.fixedSize();
     }
 
     @Override
-    public U decode(ByteBuffer byteSlice) {
+    public @NotNull U decode(ByteBuffer byteSlice) {
       Object[] recordConstructorArguments = tupleDecoder.decode(byteSlice);
 
       try {
@@ -536,7 +537,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Integer fixedSize() {
+    public @Nullable Integer fixedSize() {
       int position = 0;
       for (var componentDecoder : componentDecoders) {
         var fixedComponentSize = componentDecoder.fixedSize();
@@ -556,7 +557,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Object[] decode(ByteBuffer byteSlice) {
+    public Object @NotNull [] decode(ByteBuffer byteSlice) {
       int framingOffsetSize = byteCount(byteSlice.limit());
 
       var objects = new Object[componentDecoders.length];
@@ -616,13 +617,13 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Integer fixedSize() {
+    public @Nullable Integer fixedSize() {
       return tupleDecoder.fixedSize();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map.Entry<K, V> decode(ByteBuffer byteSlice) {
+    public Map.@NotNull Entry<K, V> decode(ByteBuffer byteSlice) {
       Object[] components = tupleDecoder.decode(byteSlice);
       return new SimpleImmutableEntry<>((K) components[0], (V) components[1]);
     }
@@ -642,7 +643,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Variant decode(ByteBuffer byteSlice) {
+    public @NotNull Variant decode(ByteBuffer byteSlice) {
       for (int i = byteSlice.limit() - 1; i >= 0; --i) {
         if (byteSlice.get(i) != 0) {
           continue;
@@ -678,7 +679,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Boolean decode(ByteBuffer byteSlice) {
+    public @NotNull Boolean decode(ByteBuffer byteSlice) {
       return byteSlice.get() != 0;
     }
   }
@@ -696,7 +697,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Byte decode(ByteBuffer byteSlice) {
+    public @NotNull Byte decode(ByteBuffer byteSlice) {
       return byteSlice.get();
     }
   }
@@ -714,7 +715,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Short decode(ByteBuffer byteSlice) {
+    public @NotNull Short decode(ByteBuffer byteSlice) {
       return byteSlice.getShort();
     }
   }
@@ -732,7 +733,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Integer decode(ByteBuffer byteSlice) {
+    public @NotNull Integer decode(ByteBuffer byteSlice) {
       return byteSlice.getInt();
     }
   }
@@ -750,7 +751,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Long decode(ByteBuffer byteSlice) {
+    public @NotNull Long decode(ByteBuffer byteSlice) {
       return byteSlice.getLong();
     }
   }
@@ -768,7 +769,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public Double decode(ByteBuffer byteSlice) {
+    public @NotNull Double decode(ByteBuffer byteSlice) {
       return byteSlice.getDouble();
     }
   }
@@ -793,7 +794,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public String decode(ByteBuffer byteSlice) {
+    public @NotNull String decode(ByteBuffer byteSlice) {
       byteSlice.limit(byteSlice.limit() - 1);
       return charset.decode(byteSlice).toString();
     }
@@ -801,9 +802,9 @@ public abstract class Decoder<T> {
 
   private class MappingDecoder<U> extends Decoder<U> {
 
-    private final Function<T, U> function;
+    private final Function<@NotNull T, @NotNull U> function;
 
-    MappingDecoder(Function<T, U> function) {
+    MappingDecoder(Function<@NotNull T, @NotNull U> function) {
       this.function = function;
     }
 
@@ -818,7 +819,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public U decode(ByteBuffer byteSlice) {
+    public @NotNull U decode(ByteBuffer byteSlice) {
       return function.apply(Decoder.this.decode(byteSlice));
     }
   }
@@ -842,7 +843,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public T decode(ByteBuffer byteSlice) {
+    public @NotNull T decode(ByteBuffer byteSlice) {
       var transformedBuffer = function.apply(byteSlice.asReadOnlyBuffer().order(byteSlice.order()));
       return Decoder.this.decode(transformedBuffer);
     }
@@ -867,7 +868,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public T decode(ByteBuffer byteSlice) {
+    public @NotNull T decode(ByteBuffer byteSlice) {
       var newByteSlice = byteSlice.duplicate();
       newByteSlice.order(byteOrder);
       return Decoder.this.decode(newByteSlice);
@@ -898,7 +899,9 @@ public abstract class Decoder<T> {
       if (!Objects.equals(thenDecoder.fixedSize(), elseDecoder.fixedSize())) {
         throw new IllegalArgumentException(
             "incompatible sizes in predicate branches: then=%s, else=%s"
-                .formatted(thenDecoder.fixedSize(), elseDecoder.fixedSize()));
+                .formatted(
+                    Objects.requireNonNullElse(thenDecoder.fixedSize(), "(null)"),
+                    Objects.requireNonNullElse(elseDecoder.fixedSize(), "(null)")));
       }
     }
 
@@ -913,7 +916,7 @@ public abstract class Decoder<T> {
     }
 
     @Override
-    public U decode(ByteBuffer byteSlice) {
+    public @NotNull U decode(ByteBuffer byteSlice) {
       var b = selector.test(byteSlice);
       byteSlice.rewind();
       return b ? thenDecoder.decode(byteSlice) : elseDecoder.decode(byteSlice);

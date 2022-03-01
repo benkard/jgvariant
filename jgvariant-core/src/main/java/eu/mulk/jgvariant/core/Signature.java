@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A GVariant signature string.
@@ -73,7 +74,7 @@ public final class Signature {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     return (o instanceof Signature signature)
         && Objects.equals(signatureString, signature.signatureString);
   }

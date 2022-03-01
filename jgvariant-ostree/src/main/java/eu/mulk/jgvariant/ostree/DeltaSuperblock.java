@@ -70,20 +70,20 @@ public record DeltaSuperblock(
               Decoder.ofByteArray().map(DeltaSuperblock::parseDeltaNameList),
               Decoder.ofArray(DeltaMetaEntry.decoder()).withByteOrder(ByteOrder.LITTLE_ENDIAN),
               Decoder.ofArray(DeltaFallback.decoder()).withByteOrder(ByteOrder.LITTLE_ENDIAN))
-          .map(
-              deltaSuperblock -> {
-                // Fix up the endianness of the 'entries' and 'fallbacks' fields, which have
-                // unspecified byte order.
-                var endiannessMetadatum =
-                    deltaSuperblock.metadata().fields().get("ostree.endianness");
-                if (endiannessMetadatum != null
-                    && endiannessMetadatum.value() instanceof Byte endiannessByte
-                    && endiannessByte == (byte) 'B') {
-                  return deltaSuperblock.byteSwapped();
-                } else {
-                  return deltaSuperblock;
-                }
-              });
+          .map(DeltaSuperblock::byteSwappedIfBigEndian);
+
+  private DeltaSuperblock byteSwappedIfBigEndian() {
+    // Fix up the endianness of the 'entries' and 'fallbacks' fields, which have
+    // unspecified byte order.
+    var endiannessMetadatum = metadata().fields().get("ostree.endianness");
+    if (endiannessMetadatum != null
+        && endiannessMetadatum.value() instanceof Byte endiannessByte
+        && endiannessByte == (byte) 'B') {
+      return byteSwapped();
+    } else {
+      return this;
+    }
+  }
 
   private DeltaSuperblock byteSwapped() {
     return new DeltaSuperblock(

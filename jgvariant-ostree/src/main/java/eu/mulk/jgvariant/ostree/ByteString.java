@@ -10,6 +10,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A wrapper for a {@code byte[]} that implements {@link #equals(Object)}, {@link #hashCode()}, and
@@ -31,7 +32,7 @@ public record ByteString(byte[] bytes) {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     return (o instanceof ByteString byteString) && Arrays.equals(bytes, byteString.bytes);
   }
 
