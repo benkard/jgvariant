@@ -25,7 +25,7 @@
  *
  * <h3 id="sect-installation-maven">Usage with Maven</h3>
  *
- * <pre>{@code
+ * {@snippet lang="xml" :
  * <project>
  *   ...
  *
@@ -62,21 +62,21 @@
  *
  *   ...
  * </project>
- * }</pre>
+ * }
  *
  * <h3 id="sect-installation-gradle">Usage with Gradle</h3>
  *
- * <pre>{@code
+ * {@snippet lang="groovy" :
  * dependencies {
- *   ...
+ *   // ...
  *
- *   implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.5")
+ *   implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.5"))
  *   implementation("eu.mulk.jgvariant:jgvariant-core")
  *   implementation("eu.mulk.jgvariant:jgvariant-ostree")
  *
- *   ...
+ *   // ...
  * }
- * }</pre>
+ * }
  */
 module eu.mulk.jgvariant.ostree {
   requires transitive eu.mulk.jgvariant.core;

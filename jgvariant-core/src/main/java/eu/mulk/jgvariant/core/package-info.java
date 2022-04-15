@@ -14,7 +14,7 @@
  * <p>To parse a GVariant of type {@code "a(si)"}, which is an array of pairs of {@link
  * java.lang.String} and {@code int}, you can use the following code:
  *
- * <pre>{@code
+ * {@snippet lang="java" :
  * record ExampleRecord(String s, int i) {}
  *
  * var decoder =
@@ -24,8 +24,8 @@
  *       Decoder.ofString(UTF_8),
  *       Decoder.ofInt().withByteOrder(LITTLE_ENDIAN)));
  *
- * byte[] bytes = ...;
+ * byte[] bytes;
  * List<ExampleRecord> example = decoder.decode(ByteBuffer.wrap(bytes));
- * }</pre>
+ * }
  */
 package eu.mulk.jgvariant.core;
