@@ -58,24 +58,24 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
     <flatten-plugin.version>1.2.7</flatten-plugin.version>
-    <jar-plugin.version>3.2.0</jar-plugin.version>
-    <maven-scm-plugin.version>1.12.0</maven-scm-plugin.version>
+    <jar-plugin.version>3.2.2</jar-plugin.version>
+    <maven-scm-plugin.version>2.0.0-M1</maven-scm-plugin.version>
     <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
     <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
     <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
     <nexus-staging-plugin.version>1.6.8</nexus-staging-plugin.version>
-    <spotless-plugin.version>2.17.6</spotless-plugin.version>
+    <spotless-plugin.version>2.22.1</spotless-plugin.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
-    <versions-plugin.version>2.8.1</versions-plugin.version>
+    <versions-plugin.version>2.10.0</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
-    <errorprone.version>2.11.0</errorprone.version>
-    <google-java-format.version>1.13.0</google-java-format.version>
-    <inject-resources.version>0.3.0</inject-resources.version>
-    <jetbrains-annotations.version>22.0.0</jetbrains-annotations.version>
+    <errorprone.version>2.13.0</errorprone.version>
+    <google-java-format.version>1.15.0</google-java-format.version>
+    <inject-resources.version>0.3.2</inject-resources.version>
+    <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <xz.version>1.9</xz.version>
-    <checker-framework.version>3.21.1</checker-framework.version>
+    <checker-framework.version>3.21.4</checker-framework.version>
   </properties>
 
   <distributionManagement>
