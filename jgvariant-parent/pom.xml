@@ -69,13 +69,13 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <versions-plugin.version>2.10.0</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
-    <errorprone.version>2.13.0</errorprone.version>
+    <errorprone.version>2.15.0</errorprone.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <inject-resources.version>0.3.2</inject-resources.version>
     <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
-    <junit-jupiter.version>5.8.2</junit-jupiter.version>
+    <junit-jupiter.version>5.9.0</junit-jupiter.version>
     <xz.version>1.9</xz.version>
-    <checker-framework.version>3.21.4</checker-framework.version>
+    <checker-framework.version>3.25.0</checker-framework.version>
   </properties>
 
   <distributionManagement>
