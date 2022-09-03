@@ -49,7 +49,7 @@
  *         <dt>{@code {ext}}
  *         <dd>the {@link eu.mulk.jgvariant.ostree.ObjectType#fileExtension()} of the object type
  *       </dl>
- *   <dt id="delta-superblock">{@code objects/{ν₀ν₁}/{ν₂ν₃ν₄ν₅...}.{ext}}/superblock
+ *   <dt id="delta-superblock">{@code deltas/{ν₀ν₁}/{ν₂ν₃ν₄ν₅...}/superblock}
  *   <dd>
  *       <p>A {@link eu.mulk.jgvariant.ostree.DeltaSuperblock} to get from nothing (an empty commit)
  *       to the commit named by the checksum encoded in the path.
