@@ -75,7 +75,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <xz.version>1.9</xz.version>
-    <checker-framework.version>3.21.4</checker-framework.version>
+    <checker-framework.version>3.23.0</checker-framework.version>
   </properties>
 
   <distributionManagement>
