@@ -80,9 +80,9 @@
  * }
  */
 module eu.mulk.jgvariant.core {
-  requires com.google.errorprone.annotations;
-  requires org.jetbrains.annotations;
-  requires org.apiguardian.api;
+  requires static com.google.errorprone.annotations;
+  requires static org.apiguardian.api;
+  requires static org.jetbrains.annotations;
 
   exports eu.mulk.jgvariant.core;
 }

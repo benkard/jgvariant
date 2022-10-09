@@ -80,10 +80,12 @@
  */
 module eu.mulk.jgvariant.ostree {
   requires transitive eu.mulk.jgvariant.core;
-  requires com.google.errorprone.annotations;
-  requires org.apiguardian.api;
-  requires org.jetbrains.annotations;
+
   requires org.tukaani.xz;
+
+  requires static com.google.errorprone.annotations;
+  requires static org.apiguardian.api;
+  requires static org.jetbrains.annotations;
 
   exports eu.mulk.jgvariant.ostree;
 }
