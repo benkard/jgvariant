@@ -4,8 +4,9 @@
 
 package eu.mulk.jgvariant.ostree;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import eu.mulk.jgvariant.core.Decoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -34,8 +35,7 @@ public record DirTree(List<File> files, List<Directory> directories) {
   public record File(String name, Checksum checksum) {
 
     private static final Decoder<File> DECODER =
-        Decoder.ofStructure(
-            File.class, Decoder.ofString(StandardCharsets.UTF_8), Checksum.decoder());
+        Decoder.ofStructure(File.class, Decoder.ofString(UTF_8), Checksum.decoder());
 
     /**
      * Acquires a {@link Decoder} for the enclosing type.
@@ -58,10 +58,7 @@ public record DirTree(List<File> files, List<Directory> directories) {
 
     private static final Decoder<Directory> DECODER =
         Decoder.ofStructure(
-            Directory.class,
-            Decoder.ofString(StandardCharsets.UTF_8),
-            Checksum.decoder(),
-            Checksum.decoder());
+            Directory.class, Decoder.ofString(UTF_8), Checksum.decoder(), Checksum.decoder());
 
     /**
      * Acquires a {@link Decoder} for the enclosing type.

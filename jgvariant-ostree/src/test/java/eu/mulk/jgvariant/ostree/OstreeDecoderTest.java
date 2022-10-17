@@ -17,7 +17,12 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 @TestWithResources
-@SuppressWarnings("initialization.field.uninitialized")
+@SuppressWarnings({
+  "ImmutableListOf1",
+  "ImmutableMapOf1",
+  "initialization.field.uninitialized",
+  "NullAway"
+})
 class OstreeDecoderTest {
 
   @GivenBinaryResource("/ostree/summary")
@@ -42,7 +47,7 @@ class OstreeDecoderTest {
   byte[] deltaPartPayloadBytes;
 
   @Test
-  void testSummaryDecoder() {
+  void summaryDecoder() {
     var decoder = Summary.decoder();
     var summary = decoder.decode(ByteBuffer.wrap(summaryBytes));
     assertAll(
@@ -65,35 +70,35 @@ class OstreeDecoderTest {
   }
 
   @Test
-  void testCommitDecoder() {
+  void commitDecoder() {
     var decoder = Commit.decoder();
     var commit = decoder.decode(ByteBuffer.wrap(commitBytes));
     System.out.println(commit);
   }
 
   @Test
-  void testDirTreeDecoder() {
+  void dirTreeDecoder() {
     var decoder = DirTree.decoder();
     var dirTree = decoder.decode(ByteBuffer.wrap(dirTreeBytes));
     System.out.println(dirTree);
   }
 
   @Test
-  void testDirMetaDecoder() {
+  void dirMetaDecoder() {
     var decoder = DirMeta.decoder();
     var dirMeta = decoder.decode(ByteBuffer.wrap(dirMetaBytes));
     System.out.println(dirMeta);
   }
 
   @Test
-  void testSuperblockDecoder() {
+  void superblockDecoder() {
     var decoder = DeltaSuperblock.decoder();
     var deltaSuperblock = decoder.decode(ByteBuffer.wrap(deltaSuperblockBytes));
     System.out.println(deltaSuperblock);
   }
 
   @Test
-  void testPartPayloadDecoder() {
+  void partPayloadDecoder() {
     var superblockDecoder = DeltaSuperblock.decoder();
     var superblock = superblockDecoder.decode(ByteBuffer.wrap(deltaSuperblockBytes));
 

@@ -5,15 +5,16 @@
 package eu.mulk.jgvariant.core;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.toMap;
 
+import com.google.errorprone.annotations.Immutable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,8 +57,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> the type that the {@link Decoder} can decode.
  */
-@SuppressWarnings("java:S1610")
 @API(status = Status.EXPERIMENTAL)
+@Immutable
+@SuppressWarnings({"ImmutableListOf", "InvalidInlineTag", "java:S1610", "UnescapedEntity"})
 public abstract class Decoder<T> {
 
   private Decoder() {}
@@ -523,6 +525,7 @@ public abstract class Decoder<T> {
     }
   }
 
+  @SuppressWarnings("Immutable")
   private static class TupleDecoder extends Decoder<Object[]> {
 
     private final Decoder<?>[] componentDecoders;
@@ -625,7 +628,7 @@ public abstract class Decoder<T> {
     @SuppressWarnings("unchecked")
     public Map.@NotNull Entry<K, V> decode(ByteBuffer byteSlice) {
       Object[] components = tupleDecoder.decode(byteSlice);
-      return new SimpleImmutableEntry<>((K) components[0], (V) components[1]);
+      return Map.entry((K) components[0], (V) components[1]);
     }
   }
 
@@ -800,6 +803,7 @@ public abstract class Decoder<T> {
     }
   }
 
+  @SuppressWarnings("Immutable")
   private class MappingDecoder<U> extends Decoder<U> {
 
     private final Function<@NotNull T, @NotNull U> function;
@@ -824,6 +828,7 @@ public abstract class Decoder<T> {
     }
   }
 
+  @SuppressWarnings("Immutable")
   private class ContramappingDecoder extends Decoder<T> {
 
     private final UnaryOperator<ByteBuffer> function;
@@ -879,6 +884,7 @@ public abstract class Decoder<T> {
     return byteSlice.slice(index, length).order(byteSlice.order());
   }
 
+  @SuppressWarnings("Immutable")
   private static class PredicateDecoder<U> extends Decoder<U> {
 
     private final Predicate<ByteBuffer> selector;
@@ -900,8 +906,8 @@ public abstract class Decoder<T> {
         throw new IllegalArgumentException(
             "incompatible sizes in predicate branches: then=%s, else=%s"
                 .formatted(
-                    Objects.requireNonNullElse(thenDecoder.fixedSize(), "(null)"),
-                    Objects.requireNonNullElse(elseDecoder.fixedSize(), "(null)")));
+                    requireNonNullElse(thenDecoder.fixedSize(), "(null)"),
+                    requireNonNullElse(elseDecoder.fixedSize(), "(null)")));
       }
     }
 

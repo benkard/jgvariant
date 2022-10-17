@@ -23,17 +23,26 @@ import org.junit.jupiter.api.Test;
  * Tests based on the examples given in <a
  * href="https://people.gnome.org/~desrt/gvariant-serialisation.pdf">~desrt/gvariant-serialisation.pdf</a>.
  */
+@SuppressWarnings({
+  "ImmutableListOf",
+  "ImmutableListOf1",
+  "ImmutableListOf2",
+  "ImmutableListOf3",
+  "ImmutableListOf4",
+  "ImmutableListOf5",
+  "ImmutableMapOf2"
+})
 class DecoderTest {
 
   @Test
-  void testString() {
+  void string() {
     var data = new byte[] {0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x00};
     var decoder = Decoder.ofString(UTF_8);
     assertEquals("hello world", decoder.decode(ByteBuffer.wrap(data)));
   }
 
   @Test
-  void testMaybe() {
+  void maybe() {
     var data =
         new byte[] {0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x00, 0x00};
     var decoder = Decoder.ofMaybe(Decoder.ofString(UTF_8));
@@ -41,14 +50,14 @@ class DecoderTest {
   }
 
   @Test
-  void testBooleanArray() {
+  void booleanArray() {
     var data = new byte[] {0x01, 0x00, 0x00, 0x01, 0x01};
     var decoder = Decoder.ofArray(Decoder.ofBoolean());
     assertEquals(List.of(true, false, false, true, true), decoder.decode(ByteBuffer.wrap(data)));
   }
 
   @Test
-  void testStructure() {
+  void structure() {
     var data =
         new byte[] {
           0x66, 0x6F, 0x6F, 0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x04
@@ -61,7 +70,7 @@ class DecoderTest {
   }
 
   @Test
-  void testComplexStructureArray() {
+  void complexStructureArray() {
     var data =
         new byte[] {
           0x68,
@@ -103,7 +112,7 @@ class DecoderTest {
   }
 
   @Test
-  void testDictionary() {
+  void dictionary() {
     var data =
         new byte[] {
           0x68,
@@ -137,7 +146,7 @@ class DecoderTest {
   }
 
   @Test
-  void testStringArray() {
+  void stringArray() {
     var data =
         new byte[] {
           0x69, 0x00, 0x63, 0x61, 0x6E, 0x00, 0x68, 0x61, 0x73, 0x00, 0x73, 0x74, 0x72, 0x69, 0x6E,
@@ -148,7 +157,7 @@ class DecoderTest {
   }
 
   @Test
-  void testNestedStructure() {
+  void nestedStructure() {
     var data =
         new byte[] {
           0x69, 0x63, 0x61, 0x6E, 0x00, 0x68, 0x61, 0x73, 0x00, 0x73, 0x74, 0x72, 0x69, 0x6E, 0x67,
@@ -170,7 +179,7 @@ class DecoderTest {
   }
 
   @Test
-  void testNestedStructureVariant() {
+  void nestedStructureVariant() {
     var data =
         new byte[] {
           0x69, 0x63, 0x61, 0x6E, 0x00, 0x68, 0x61, 0x73, 0x00, 0x73, 0x74, 0x72, 0x69, 0x6E, 0x67,
@@ -189,7 +198,7 @@ class DecoderTest {
   }
 
   @Test
-  void testSimpleStructure() {
+  void simpleStructure() {
     var data = new byte[] {0x60, 0x70};
 
     record TestRecord(byte b1, byte b2) {}
@@ -204,7 +213,7 @@ class DecoderTest {
   }
 
   @Test
-  void testPaddedStructureRight() {
+  void paddedStructureRight() {
     var data = new byte[] {0x60, 0x00, 0x00, 0x00, 0x70, 0x00, 0x00, 0x00};
 
     record TestRecord(int b1, byte b2) {}
@@ -219,7 +228,7 @@ class DecoderTest {
   }
 
   @Test
-  void testPaddedStructureLeft() {
+  void paddedStructureLeft() {
     var data = new byte[] {0x60, 0x00, 0x00, 0x00, 0x70, 0x00, 0x00, 0x00};
 
     record TestRecord(byte b1, int b2) {}
@@ -234,7 +243,7 @@ class DecoderTest {
   }
 
   @Test
-  void testSimpleStructureArray() {
+  void simpleStructureArray() {
     var data =
         new byte[] {
           0x60,
@@ -270,7 +279,7 @@ class DecoderTest {
   }
 
   @Test
-  void testByteArray() {
+  void byteArray() {
     var data = new byte[] {0x04, 0x05, 0x06, 0x07};
 
     var decoder = Decoder.ofArray(Decoder.ofByte());
@@ -281,7 +290,7 @@ class DecoderTest {
   }
 
   @Test
-  void testPrimitiveByteArray() {
+  void primitiveByteArray() {
     var data = new byte[] {0x04, 0x05, 0x06, 0x07};
 
     var decoder = Decoder.ofByteArray();
@@ -290,7 +299,7 @@ class DecoderTest {
   }
 
   @Test
-  void testPrimitiveByteArrayRecord() {
+  void primitiveByteArrayRecord() {
     var data = new byte[] {0x04, 0x05, 0x06, 0x07};
 
     record TestRecord(byte[] bytes) {}
@@ -301,7 +310,7 @@ class DecoderTest {
   }
 
   @Test
-  void testIntegerArray() {
+  void integerArray() {
     var data = new byte[] {0x04, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00};
 
     var decoder = Decoder.ofArray(Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
@@ -310,7 +319,7 @@ class DecoderTest {
   }
 
   @Test
-  void testDictionaryEntryAsMapEntry() {
+  void dictionaryEntryAsMapEntry() {
     var data =
         new byte[] {0x61, 0x20, 0x6B, 0x65, 0x79, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x06};
 
@@ -321,7 +330,7 @@ class DecoderTest {
   }
 
   @Test
-  void testDictionaryEntryAsRecord() {
+  void dictionaryEntryAsRecord() {
     var data =
         new byte[] {0x61, 0x20, 0x6B, 0x65, 0x79, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x06};
 
@@ -334,7 +343,7 @@ class DecoderTest {
   }
 
   @Test
-  void testPaddedPrimitives() {
+  void paddedPrimitives() {
     var data =
         new byte[] {
           0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -353,7 +362,7 @@ class DecoderTest {
   }
 
   @Test
-  void testEmbeddedMaybe() {
+  void embeddedMaybe() {
     var data = new byte[] {0x01, 0x01};
 
     record TestRecord(Optional<Byte> set, Optional<Byte> unset) {}
@@ -367,7 +376,7 @@ class DecoderTest {
   }
 
   @Test
-  void testRecordComponentMismatch() {
+  void recordComponentMismatch() {
     record TestRecord(Optional<Byte> set) {}
 
     var maybeDecoder = Decoder.ofMaybe(Decoder.ofByte());
@@ -377,7 +386,7 @@ class DecoderTest {
   }
 
   @Test
-  void testTrivialRecord() {
+  void trivialRecord() {
     var data = new byte[] {0x00};
 
     record TestRecord() {}
@@ -387,7 +396,7 @@ class DecoderTest {
   }
 
   @Test
-  void testTwoElementTrivialRecordArray() {
+  void twoElementTrivialRecordArray() {
     var data = new byte[] {0x00, 0x00};
 
     record TestRecord() {}
@@ -398,7 +407,7 @@ class DecoderTest {
   }
 
   @Test
-  void testSingletonTrivialRecordArray() {
+  void singletonTrivialRecordArray() {
     var data = new byte[] {0x00};
 
     record TestRecord() {}
@@ -408,7 +417,7 @@ class DecoderTest {
   }
 
   @Test
-  void testEmptyTrivialRecordArray() {
+  void emptyTrivialRecordArray() {
     var data = new byte[] {};
 
     record TestRecord() {}
@@ -418,7 +427,7 @@ class DecoderTest {
   }
 
   @Test
-  void testVariantArray() {
+  void variantArray() {
     var data = new byte[] {};
 
     record TestRecord() {}
@@ -428,7 +437,7 @@ class DecoderTest {
   }
 
   @Test
-  void testInvalidVariantSignature() {
+  void invalidVariantSignature() {
     var data = new byte[] {0x00, 0x00, 0x2E};
 
     var decoder = Decoder.ofVariant();
@@ -436,7 +445,7 @@ class DecoderTest {
   }
 
   @Test
-  void testMissingVariantSignature() {
+  void missingVariantSignature() {
     var data = new byte[] {0x01};
 
     var decoder = Decoder.ofVariant();
@@ -444,7 +453,7 @@ class DecoderTest {
   }
 
   @Test
-  void testSimpleVariantRecord() throws ParseException {
+  void simpleVariantRecord() throws ParseException {
     // signature: "(bynqiuxtdsogvmiai)"
     var data =
         new byte[] {
@@ -494,7 +503,7 @@ class DecoderTest {
   }
 
   @Test
-  void testSignatureString() throws ParseException {
+  void signatureString() throws ParseException {
     var data =
         new byte[] {
           0x28, 0x62, 0x79, 0x6E, 0x71, 0x69, 0x75, 0x78, 0x74, 0x64, 0x73, 0x6F, 0x67, 0x76, 0x6D,
@@ -506,21 +515,21 @@ class DecoderTest {
   }
 
   @Test
-  void testMap() {
+  void map() {
     var data = new byte[] {0x0A, 0x0B, 0x0C};
     var decoder = Decoder.ofByteArray().map(bytes -> bytes.length);
     assertEquals(3, decoder.decode(ByteBuffer.wrap(data)));
   }
 
   @Test
-  void testContramap() {
+  void contramap() {
     var data = new byte[] {0x0A, 0x0B, 0x0C};
     var decoder = Decoder.ofByteArray().contramap(bytes -> bytes.slice(1, 1));
     assertArrayEquals(new byte[] {0x0B}, decoder.decode(ByteBuffer.wrap(data)));
   }
 
   @Test
-  void testPredicateTrue() {
+  void predicateTrue() {
     var data = new byte[] {0x00, 0x01, 0x00};
     var innerDecoder = Decoder.ofShort().contramap(bytes -> bytes.slice(1, 2).order(bytes.order()));
     var decoder =
@@ -532,7 +541,7 @@ class DecoderTest {
   }
 
   @Test
-  void testPredicateFalse() {
+  void predicateFalse() {
     var data = new byte[] {0x01, 0x01, 0x00};
     var innerDecoder = Decoder.ofShort().contramap(bytes -> bytes.slice(1, 2).order(bytes.order()));
     var decoder =
@@ -544,7 +553,7 @@ class DecoderTest {
   }
 
   @Test
-  void testByteOrder() {
+  void byteOrder() {
     var data =
         new byte[] {
           0x01, 0x00, 0x02, 0x00, 0x00, 0x03, 0x00, 0x04, 0x05, 0x00, 0x00, 0x06, 0x00, 0x07, 0x08,

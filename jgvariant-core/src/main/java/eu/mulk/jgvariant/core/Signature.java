@@ -4,8 +4,10 @@
 
 package eu.mulk.jgvariant.core;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +43,7 @@ public final class Signature {
     this.decoder = parseSignature(signatureBytes);
 
     signatureBytes.rewind();
-    this.signatureString = StandardCharsets.US_ASCII.decode(signatureBytes).toString();
+    this.signatureString = US_ASCII.decode(signatureBytes).toString();
   }
 
   static Signature parse(ByteBuffer signatureBytes) throws ParseException {
@@ -49,7 +51,7 @@ public final class Signature {
   }
 
   public static Signature parse(String signatureString) throws ParseException {
-    var signatureBytes = ByteBuffer.wrap(signatureString.getBytes(StandardCharsets.US_ASCII));
+    var signatureBytes = ByteBuffer.wrap(signatureString.getBytes(US_ASCII));
     return parse(signatureBytes);
   }
 
@@ -93,7 +95,7 @@ public final class Signature {
       case 'i', 'u' -> Decoder.ofInt();
       case 'x', 't' -> Decoder.ofLong();
       case 'd' -> Decoder.ofDouble();
-      case 's', 'o', 'g' -> Decoder.ofString(StandardCharsets.UTF_8);
+      case 's', 'o', 'g' -> Decoder.ofString(UTF_8);
       case 'v' -> Decoder.ofVariant();
       case 'm' -> Decoder.ofMaybe(parseSignature(signature));
       case '(' -> Decoder.ofStructure(parseTupleTypes(signature).toArray(new Decoder<?>[0]));

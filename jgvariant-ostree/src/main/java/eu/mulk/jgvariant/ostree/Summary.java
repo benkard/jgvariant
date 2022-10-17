@@ -4,9 +4,10 @@
 
 package eu.mulk.jgvariant.ostree;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import eu.mulk.jgvariant.core.Decoder;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -58,7 +59,7 @@ public record Summary(List<Entry> entries, Metadata metadata) {
     }
 
     private static final Decoder<Entry> DECODER =
-        Decoder.ofStructure(Entry.class, Decoder.ofString(StandardCharsets.UTF_8), Value.decoder());
+        Decoder.ofStructure(Entry.class, Decoder.ofString(UTF_8), Value.decoder());
 
     /**
      * Acquires a {@link Decoder} for the enclosing type.

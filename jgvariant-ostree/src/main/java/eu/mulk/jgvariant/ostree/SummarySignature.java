@@ -4,9 +4,10 @@
 
 package eu.mulk.jgvariant.ostree;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import eu.mulk.jgvariant.core.Decoder;
 import eu.mulk.jgvariant.core.Variant;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -21,8 +22,7 @@ import java.util.Map;
 public record SummarySignature(Map<String, Variant> signatures) {
 
   private static final Decoder<SummarySignature> DECODER =
-      Decoder.ofDictionary(Decoder.ofString(StandardCharsets.UTF_8), Decoder.ofVariant())
-          .map(SummarySignature::new);
+      Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofVariant()).map(SummarySignature::new);
 
   /**
    * Acquires a {@link Decoder} for the enclosing type.

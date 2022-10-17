@@ -70,12 +70,13 @@ SPDX-License-Identifier: LGPL-3.0-or-later
 
     <apiguardian.version>1.1.2</apiguardian.version>
     <errorprone.version>2.15.0</errorprone.version>
+    <error-prone-support.version>0.4.0</error-prone-support.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <inject-resources.version>0.3.2</inject-resources.version>
     <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.9.0</junit-jupiter.version>
+    <nullaway.version>0.10.2</nullaway.version>
     <xz.version>1.9</xz.version>
-    <checker-framework.version>3.25.0</checker-framework.version>
   </properties>
 
   <distributionManagement>
@@ -102,18 +103,6 @@ SPDX-License-Identifier: LGPL-3.0-or-later
         <groupId>org.apiguardian</groupId>
         <artifactId>apiguardian-api</artifactId>
         <version>${apiguardian.version}</version>
-      </dependency>
-
-      <!-- Static analysis -->
-      <dependency>
-        <groupId>org.checkerframework</groupId>
-        <artifactId>checker</artifactId>
-        <version>${checker-framework.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.checkerframework</groupId>
-        <artifactId>checker-qual</artifactId>
-        <version>${checker-framework.version}</version>
       </dependency>
 
       <!-- OSTree compression support -->
@@ -178,9 +167,10 @@ SPDX-License-Identifier: LGPL-3.0-or-later
           <version>${compiler-plugin.version}</version>
           <configuration>
             <fork>true</fork>
+            <showWarnings>true</showWarnings>
             <compilerArgs>
               <arg>-XDcompilePolicy=simple</arg>
-              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF</arg>
+              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF -Xep:CollectorMutability:OFF -Xep:LexicographicalAnnotationListing:OFF -XepOpt:NullAway:AnnotatedPackages=eu.mulk</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -200,14 +190,21 @@ SPDX-License-Identifier: LGPL-3.0-or-later
                 <version>${errorprone.version}</version>
               </path>
               <path>
-                <groupId>org.checkerframework</groupId>
-                <artifactId>checker</artifactId>
-                <version>${checker-framework.version}</version>
+                <groupId>tech.picnic.error-prone-support</groupId>
+                <artifactId>error-prone-contrib</artifactId>
+                <version>${error-prone-support.version}</version>
+              </path>
+              <path>
+                <groupId>tech.picnic.error-prone-support</groupId>
+                <artifactId>refaster-runner</artifactId>
+                <version>${error-prone-support.version}</version>
+              </path>
+              <path>
+                <groupId>com.uber.nullaway</groupId>
+                <artifactId>nullaway</artifactId>
+                <version>${nullaway.version}</version>
               </path>
             </annotationProcessorPaths>
-            <annotationProcessors>
-              <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
-            </annotationProcessors>
           </configuration>
         </plugin>
 

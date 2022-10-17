@@ -4,11 +4,12 @@
 
 package eu.mulk.jgvariant.ostree;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
 import eu.mulk.jgvariant.core.Decoder;
 import eu.mulk.jgvariant.core.Variant;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -31,7 +32,7 @@ public record SignedDelta(
           SignedDelta.class,
           Decoder.ofLong().withByteOrder(ByteOrder.BIG_ENDIAN),
           ByteString.decoder().map(SignedDelta::decodeSuperblock),
-          Decoder.ofDictionary(Decoder.ofString(StandardCharsets.US_ASCII), Decoder.ofVariant()));
+          Decoder.ofDictionary(Decoder.ofString(US_ASCII), Decoder.ofVariant()));
 
   private static DeltaSuperblock decodeSuperblock(ByteString byteString) {
     return DeltaSuperblock.decoder().decode(ByteBuffer.wrap(byteString.bytes()));

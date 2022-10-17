@@ -11,25 +11,25 @@ import org.junit.jupiter.api.Test;
 class ByteStringTest {
 
   @Test
-  void testToModifiedBase64() {
+  void toModifiedBase64() {
     assertEquals("MciDXVydLGaHpQCRyFFC0bLYU_9Bap+4G07jB1RRDVI", testByteString1.modifiedBase64());
   }
 
   @Test
-  void testOfModifiedBase64() {
+  void ofModifiedBase64() {
     assertEquals(
         testByteString1,
         ByteString.ofModifiedBase64("MciDXVydLGaHpQCRyFFC0bLYU_9Bap+4G07jB1RRDVI"));
   }
 
   @Test
-  void testToHex() {
+  void toHex() {
     assertEquals(
         "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52", testByteString1.hex());
   }
 
   @Test
-  void testOfHex() {
+  void ofHex() {
     assertEquals(
         testByteString1,
         ByteString.ofHex("31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52"));
