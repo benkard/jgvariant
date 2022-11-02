@@ -69,7 +69,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <versions-plugin.version>2.10.0</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
-    <errorprone.version>2.15.0</errorprone.version>
+    <errorprone.version>2.16</errorprone.version>
     <error-prone-support.version>0.4.0</error-prone-support.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <inject-resources.version>0.3.2</inject-resources.version>
