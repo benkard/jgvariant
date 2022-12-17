@@ -62,7 +62,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <maven-scm-plugin.version>2.0.0-M3</maven-scm-plugin.version>
     <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
     <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-    <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+    <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <nexus-staging-plugin.version>1.6.8</nexus-staging-plugin.version>
     <spotless-plugin.version>2.22.1</spotless-plugin.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
