@@ -1,0 +1,9 @@
+stages:
+  - verify
+
+image: maven:3-openjdk-17
+
+verify-job:
+  stage: verify
+  script:
+    - mvn verify
