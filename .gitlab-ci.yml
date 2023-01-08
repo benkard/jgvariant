@@ -1,14 +1,15 @@
 stages:
-  - verify
+  - check
+
 image: maven:3-openjdk-17
 
 verify:
-  stage: verify
+  stage: check
   script:
     - mvn verify
 
 sast:
-  stage: verify
+  stage: check
 
 include:
   - template: Security/SAST.gitlab-ci.yml
