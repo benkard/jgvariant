@@ -75,7 +75,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <inject-resources.version>0.3.2</inject-resources.version>
     <jetbrains-annotations.version>24.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.9.2</junit-jupiter.version>
-    <nullaway.version>0.10.6</nullaway.version>
+    <nullaway.version>0.10.7</nullaway.version>
     <xz.version>1.9</xz.version>
   </properties>
 
