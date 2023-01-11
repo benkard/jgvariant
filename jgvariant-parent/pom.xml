@@ -64,18 +64,18 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <nexus-staging-plugin.version>1.6.13</nexus-staging-plugin.version>
-    <spotless-plugin.version>2.28.0</spotless-plugin.version>
+    <spotless-plugin.version>2.29.0</spotless-plugin.version>
     <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
-    <versions-plugin.version>2.14.1</versions-plugin.version>
+    <versions-plugin.version>2.14.2</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
-    <errorprone.version>2.16</errorprone.version>
+    <errorprone.version>2.17.0</errorprone.version>
     <error-prone-support.version>0.6.0</error-prone-support.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <inject-resources.version>0.3.2</inject-resources.version>
     <jetbrains-annotations.version>24.0.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.9.2</junit-jupiter.version>
-    <nullaway.version>0.10.5</nullaway.version>
+    <nullaway.version>0.10.6</nullaway.version>
     <xz.version>1.9</xz.version>
   </properties>
 
