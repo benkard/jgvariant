@@ -169,7 +169,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
             <showWarnings>true</showWarnings>
             <compilerArgs>
               <arg>-XDcompilePolicy=simple</arg>
-              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF -Xep:CollectorMutability:OFF -Xep:LexicographicalAnnotationListing:OFF -XepOpt:NullAway:AnnotatedPackages=eu.mulk</arg>
+              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF -XepOpt:NullAway:AnnotatedPackages=eu.mulk</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
