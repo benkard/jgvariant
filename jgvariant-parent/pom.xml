@@ -70,7 +70,6 @@ SPDX-License-Identifier: LGPL-3.0-or-later
 
     <apiguardian.version>1.1.2</apiguardian.version>
     <errorprone.version>2.16</errorprone.version>
-    <error-prone-support.version>0.6.0</error-prone-support.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <inject-resources.version>0.3.2</inject-resources.version>
     <jetbrains-annotations.version>24.0.0</jetbrains-annotations.version>
@@ -170,7 +169,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
             <showWarnings>true</showWarnings>
             <compilerArgs>
               <arg>-XDcompilePolicy=simple</arg>
-              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF -Xep:CollectorMutability:OFF -Xep:LexicographicalAnnotationListing:OFF -XepOpt:NullAway:AnnotatedPackages=eu.mulk</arg>
+              <arg>-Xplugin:ErrorProne -Xep:InvalidParam:OFF -XepOpt:NullAway:AnnotatedPackages=eu.mulk</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -188,16 +187,6 @@ SPDX-License-Identifier: LGPL-3.0-or-later
                 <groupId>com.google.errorprone</groupId>
                 <artifactId>error_prone_core</artifactId>
                 <version>${errorprone.version}</version>
-              </path>
-              <path>
-                <groupId>tech.picnic.error-prone-support</groupId>
-                <artifactId>error-prone-contrib</artifactId>
-                <version>${error-prone-support.version}</version>
-              </path>
-              <path>
-                <groupId>tech.picnic.error-prone-support</groupId>
-                <artifactId>refaster-runner</artifactId>
-                <version>${error-prone-support.version}</version>
               </path>
               <path>
                 <groupId>com.uber.nullaway</groupId>
