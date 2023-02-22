@@ -66,7 +66,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <nexus-staging-plugin.version>1.6.13</nexus-staging-plugin.version>
     <spotless-plugin.version>2.33.0</spotless-plugin.version>
     <surefire-plugin.version>3.0.0-M9</surefire-plugin.version>
-    <versions-plugin.version>2.14.2</versions-plugin.version>
+    <versions-plugin.version>2.15.0</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
     <errorprone.version>2.18.0</errorprone.version>
