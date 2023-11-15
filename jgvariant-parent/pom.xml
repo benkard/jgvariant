@@ -72,7 +72,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <errorprone.version>2.23.0</errorprone.version>
     <google-java-format.version>1.15.0</google-java-format.version>
     <inject-resources.version>0.3.3</inject-resources.version>
-    <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
+    <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.10.1</junit-jupiter.version>
     <nullaway.version>0.10.16</nullaway.version>
     <xz.version>1.9</xz.version>
