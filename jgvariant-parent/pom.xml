@@ -56,6 +56,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
+    <exec-plugin.version>3.1.0</exec-plugin.version>
     <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
     <flatten-plugin.version>1.5.0</flatten-plugin.version>
     <jar-plugin.version>3.3.0</jar-plugin.version>
@@ -263,6 +264,12 @@ SPDX-License-Identifier: LGPL-3.0-or-later
               </goals>
             </execution>
           </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${exec-plugin.version}</version>
         </plugin>
 
         <plugin>

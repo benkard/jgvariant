@@ -234,6 +234,30 @@ SPDX-License-Identifier: GPL-3.0-or-later
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <id>exec</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>verify</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <mainClass>eu.mulk.jgvariant.tool.Main</mainClass>
+              <arguments/>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
