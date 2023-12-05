@@ -89,7 +89,7 @@ You can build the tool either as a shaded JAR or as a native executable.
 To build and run a shaded JAR:
 
     $ mvn package -pl jgvariant-tool -am -Pshade
-    $ java -jar /home/mulk/Arbeitskasten/jgvariant/jgvariant-tool/target/jgvariant-tool-*.jar ...
+    $ java -jar jgvariant-tool/target/jgvariant-tool-*.jar ...
 
 To build and run a native executable:
 
