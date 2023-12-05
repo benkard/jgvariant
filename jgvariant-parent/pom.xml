@@ -56,7 +56,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
-    <exec-plugin.version>3.1.0</exec-plugin.version>
+    <exec-plugin.version>3.1.1</exec-plugin.version>
     <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
     <flatten-plugin.version>1.5.0</flatten-plugin.version>
     <jar-plugin.version>3.3.0</jar-plugin.version>
@@ -65,7 +65,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
     <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
     <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-    <native-plugin.version>0.9.23</native-plugin.version>
+    <native-plugin.version>0.9.28</native-plugin.version>
     <nexus-staging-plugin.version>1.6.13</nexus-staging-plugin.version>
     <spotless-plugin.version>2.41.1</spotless-plugin.version>
     <surefire-plugin.version>3.2.2</surefire-plugin.version>
@@ -78,8 +78,8 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
     <junit-jupiter.version>5.10.1</junit-jupiter.version>
     <nullaway.version>0.10.18</nullaway.version>
-    <picocli.version>4.7.4</picocli.version>
-    <yasson.version>3.0.2</yasson.version>
+    <picocli.version>4.7.5</picocli.version>
+    <yasson.version>3.0.3</yasson.version>
     <xz.version>1.9</xz.version>
   </properties>
 
