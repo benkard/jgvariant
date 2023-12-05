@@ -37,6 +37,8 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <module>jgvariant-core</module>
     <module>jgvariant-ostree</module>
 
+    <module>jgvariant-tool</module>
+
     <module>jgvariant-bom</module>
   </modules>
 

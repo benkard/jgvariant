@@ -40,7 +40,31 @@ pairs of [String][] and `int`, you can use the following code:
     List<ExampleRecord> example = decoder.decode(ByteBuffer.wrap(bytes));
 
 
-## Installation
+## Command line tool
+
+The `jgvariant-tool` module contains a tool called `jgvariant` that can
+be used to manipulate [GVariant][]-formatted files from the command line.
+Its primary purpose is to enable the scripting of [OSTree][] repository
+management tasks.
+
+Usage example (dumping the contents of an [OSTree][] summary file):
+
+    $ jgvariant ostree summary read ./jgvariant-ostree/src/test/resources/ostree/summary
+
+You can build the tool either as a shaded JAR or as a native executable.
+
+To build and run a shaded JAR:
+
+    $ mvn package -pl jgvariant-tool -am -Pshade
+    $ java -jar /home/mulk/Arbeitskasten/jgvariant/jgvariant-tool/target/jgvariant-tool-*.jar
+
+To build and run a native executable:
+
+    $ mvn package -pl jgvariant-tool -am -Pnative
+    $ ./jgvariant-tool/target/jgvariant
+
+
+## Library installation
 
 ### Usage with Maven
 
