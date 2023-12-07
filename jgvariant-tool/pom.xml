@@ -73,12 +73,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
       <groupId>org.eclipse</groupId>
       <artifactId>yasson</artifactId>
     </dependency>
-
-    <!-- Guava -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
   </dependencies>
 
   <build>

@@ -4,7 +4,6 @@
 
 module eu.mulk.jgvariant.tool {
   requires transitive eu.mulk.jgvariant.ostree;
-  requires com.google.common;
   requires info.picocli;
   requires jakarta.json;
   requires jakarta.json.bind;
