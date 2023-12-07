@@ -102,6 +102,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
             <manifest>
               <mainClass>eu.mulk.jgvariant.tool.Main</mainClass>
             </manifest>
+            <manifestEntries>
+              <Multi-Release>true</Multi-Release>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
@@ -147,6 +150,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
                     <manifest>
                       <mainClass>eu.mulk.jgvariant.tool.Main</mainClass>
                     </manifest>
+                    <manifestEntries>
+                      <Multi-Release>true</Multi-Release>
+                    </manifestEntries>
                   </archive>
                   <descriptorRefs>
                     <descriptorRef>jar-with-dependencies</descriptorRef>
