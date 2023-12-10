@@ -364,7 +364,7 @@ public abstract class Decoder<T> {
     // Determining the framing offset size requires trial and error.
     int framingOffsetSize;
     for (framingOffsetSize = 0;; framingOffsetSize = max(1, framingOffsetSize << 1)) {
-      if (elementsRelativeEnd + framingOffsetSize* framingOffsets.size() >= 1 << (8*framingOffsetSize)) {
+      if (elementsRelativeEnd + (long)framingOffsetSize * framingOffsets.size() >= 1L << (8*framingOffsetSize)) {
         continue;
       }
 
@@ -457,7 +457,7 @@ public abstract class Decoder<T> {
         }
 
         // Write the framing offsets.
-        int framingOffsetSize = computeFramingOffsetSize(byteWriter.position() - startOffset, framingOffsets);
+        int framingOffsetSize = max(1, computeFramingOffsetSize(byteWriter.position() - startOffset, framingOffsets));
         for (var framingOffset : framingOffsets) {
           byteWriter.writeIntN(framingOffset, framingOffsetSize);
         }

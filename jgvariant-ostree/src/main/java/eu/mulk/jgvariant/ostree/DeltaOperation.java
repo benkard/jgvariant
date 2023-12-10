@@ -130,6 +130,7 @@ public sealed interface DeltaOperation {
    * @see #readVarint64
    */
   private static void writeVarint64(ByteArrayOutputStream output, long value) {
+    int n = 0;
     do {
       byte b = (byte) (value & 0x7F);
       value >>= 7;
@@ -137,6 +138,7 @@ public sealed interface DeltaOperation {
         b |= (byte) 0x80;
       }
       output.write(b);
-    } while (value != 0);
+      ++n;
+    } while (value != 0 && n < 10);
   }
 }
