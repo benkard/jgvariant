@@ -44,6 +44,11 @@ SPDX-License-Identifier: LGPL-3.0-or-later
         <artifactId>jgvariant-ostree</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>eu.mulk.jgvariant</groupId>
+        <artifactId>jgvariant-tool</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
