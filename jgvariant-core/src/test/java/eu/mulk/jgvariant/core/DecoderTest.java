@@ -14,9 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -24,13 +22,14 @@ import org.junit.jupiter.api.Test;
  * href="https://people.gnome.org/~desrt/gvariant-serialisation.pdf">~desrt/gvariant-serialisation.pdf</a>.
  */
 @SuppressWarnings({
+  "ByteBufferBackingArray",
   "ImmutableListOf",
   "ImmutableListOf1",
   "ImmutableListOf2",
   "ImmutableListOf3",
   "ImmutableListOf4",
   "ImmutableListOf5",
-  "ImmutableMapOf2"
+  "ImmutableMapOf2",
 })
 class DecoderTest {
 
@@ -39,6 +38,9 @@ class DecoderTest {
     var data = new byte[] {0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x00};
     var decoder = Decoder.ofString(UTF_8);
     assertEquals("hello world", decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode("hello world");
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -47,6 +49,9 @@ class DecoderTest {
         new byte[] {0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x77, 0x6F, 0x72, 0x6C, 0x64, 0x00, 0x00};
     var decoder = Decoder.ofMaybe(Decoder.ofString(UTF_8));
     assertEquals(Optional.of("hello world"), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(Optional.of("hello world"));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -54,6 +59,9 @@ class DecoderTest {
     var data = new byte[] {0x01, 0x00, 0x00, 0x01, 0x01};
     var decoder = Decoder.ofArray(Decoder.ofBoolean());
     assertEquals(List.of(true, false, false, true, true), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of(true, false, false, true, true));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -67,6 +75,9 @@ class DecoderTest {
 
     var decoder = Decoder.ofStructure(TestRecord.class, Decoder.ofString(UTF_8), Decoder.ofInt());
     assertEquals(new TestRecord("foo", -1), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord("foo", -1));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -109,6 +120,10 @@ class DecoderTest {
     assertEquals(
         List.of(new TestRecord("hi", -2), new TestRecord("bye", -1)),
         decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData =
+        decoder.encode(List.of(new TestRecord("hi", -2), new TestRecord("bye", -1)));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -143,6 +158,13 @@ class DecoderTest {
     var decoder =
         Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
     assertEquals(Map.of("hi", -2, "bye", -1), decoder.decode(ByteBuffer.wrap(data)));
+
+    var entity = new LinkedHashMap<String, Integer>();
+    entity.put("hi", -2);
+    entity.put("bye", -1);
+    var roundtripData = decoder.encode(entity);
+    System.out.println(HexFormat.of().formatHex(roundtripData.array()));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -154,6 +176,9 @@ class DecoderTest {
         };
     var decoder = Decoder.ofArray(Decoder.ofString(UTF_8));
     assertEquals(List.of("i", "can", "has", "strings?"), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of("i", "can", "has", "strings?"));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -176,6 +201,11 @@ class DecoderTest {
     assertEquals(
         new TestParent(new TestChild((byte) 0x69, "can"), List.of("has", "strings?")),
         decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData =
+        decoder.encode(
+            new TestParent(new TestChild((byte) 0x69, "can"), List.of("has", "strings?")));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -195,6 +225,9 @@ class DecoderTest {
         () -> assertEquals(2, result.length),
         () -> assertArrayEquals(new Object[] {(byte) 0x69, "can"}, (Object[]) result[0]),
         () -> assertEquals(List.of("has", "strings?"), result[1]));
+
+    var roundtripData = decoder.encode(variant);
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -210,6 +243,9 @@ class DecoderTest {
             Decoder.ofByte().withByteOrder(LITTLE_ENDIAN));
 
     assertEquals(new TestRecord((byte) 0x60, (byte) 0x70), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord((byte) 0x60, (byte) 0x70));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -225,6 +261,9 @@ class DecoderTest {
             Decoder.ofByte().withByteOrder(LITTLE_ENDIAN));
 
     assertEquals(new TestRecord(0x60, (byte) 0x70), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord(0x60, (byte) 0x70));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -240,6 +279,9 @@ class DecoderTest {
             Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
 
     assertEquals(new TestRecord((byte) 0x60, 0x70), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord((byte) 0x60, 0x70));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -276,6 +318,10 @@ class DecoderTest {
     assertEquals(
         List.of(new TestRecord(96, (byte) 0x70), new TestRecord(648, (byte) 0xf7)),
         decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData =
+        decoder.encode(List.of(new TestRecord(96, (byte) 0x70), new TestRecord(648, (byte) 0xf7)));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -287,6 +333,9 @@ class DecoderTest {
     assertEquals(
         List.of((byte) 0x04, (byte) 0x05, (byte) 0x06, (byte) 0x07),
         decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of((byte) 0x04, (byte) 0x05, (byte) 0x06, (byte) 0x07));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -296,6 +345,9 @@ class DecoderTest {
     var decoder = Decoder.ofByteArray();
 
     assertArrayEquals(data, decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(data);
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -307,6 +359,9 @@ class DecoderTest {
     var decoder = Decoder.ofStructure(TestRecord.class, Decoder.ofByteArray());
 
     assertArrayEquals(data, decoder.decode(ByteBuffer.wrap(data)).bytes());
+
+    var roundtripData = decoder.encode(new TestRecord(data));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -316,6 +371,9 @@ class DecoderTest {
     var decoder = Decoder.ofArray(Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
 
     assertEquals(List.of(4, 258), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of(4, 258));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -327,6 +385,9 @@ class DecoderTest {
         Decoder.ofDictionaryEntry(
             Decoder.ofString(UTF_8), Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
     assertEquals(Map.entry("a key", 514), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(Map.entry("a key", 514));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -340,6 +401,9 @@ class DecoderTest {
         Decoder.ofStructure(
             TestEntry.class, Decoder.ofString(UTF_8), Decoder.ofInt().withByteOrder(LITTLE_ENDIAN));
     assertEquals(new TestEntry("a key", 514), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestEntry("a key", 514));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -359,6 +423,10 @@ class DecoderTest {
             Decoder.ofLong().withByteOrder(LITTLE_ENDIAN),
             Decoder.ofDouble());
     assertEquals(new TestRecord((short) 1, 2, 3.25), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord((short) 1, 2, 3.25));
+
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -373,6 +441,9 @@ class DecoderTest {
     assertEquals(
         new TestRecord(Optional.of((byte) 1), Optional.empty()),
         decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord(Optional.of((byte) 1), Optional.empty()));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -393,6 +464,9 @@ class DecoderTest {
 
     var decoder = Decoder.ofStructure(TestRecord.class);
     assertEquals(new TestRecord(), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(new TestRecord());
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -404,6 +478,9 @@ class DecoderTest {
     var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
     assertEquals(
         List.of(new TestRecord(), new TestRecord()), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of(new TestRecord(), new TestRecord()));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -414,6 +491,9 @@ class DecoderTest {
 
     var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
     assertEquals(List.of(new TestRecord()), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of(new TestRecord()));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -424,6 +504,9 @@ class DecoderTest {
 
     var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
     assertEquals(List.of(), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of());
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -434,6 +517,9 @@ class DecoderTest {
 
     var decoder = Decoder.ofArray(Decoder.ofStructure(TestRecord.class));
     assertEquals(List.of(), decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData = decoder.encode(List.of());
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -500,6 +586,9 @@ class DecoderTest {
           List.of(11, 12)
         },
         (Object[]) decoder.decode(ByteBuffer.wrap(data)).value());
+
+    var roundtripData = decoder.encode(decoder.decode(ByteBuffer.wrap(data)));
+    assertArrayEquals(data, roundtripData.array());
   }
 
   @Test
@@ -610,5 +699,14 @@ class DecoderTest {
             new TestChild((short) 5, (short) 6),
             new TestChild((short) 7, (short) 8)),
         decoder.decode(ByteBuffer.wrap(data)));
+
+    var roundtripData =
+        decoder.encode(
+            new TestParent(
+                new TestChild((short) 1, (short) 2),
+                new TestChild((short) 3, (short) 4),
+                new TestChild((short) 5, (short) 6),
+                new TestChild((short) 7, (short) 8)));
+    assertArrayEquals(data, roundtripData.array());
   }
 }

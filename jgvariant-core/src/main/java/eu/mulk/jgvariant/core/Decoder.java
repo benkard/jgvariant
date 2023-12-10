@@ -5,6 +5,7 @@
 package eu.mulk.jgvariant.core;
 
 import static java.lang.Math.max;
+import static java.nio.ByteOrder.BIG_ENDIAN;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNullElse;
@@ -440,12 +441,16 @@ public abstract class Decoder<T> {
         ArrayList<Integer> framingOffsets = new ArrayList<>(value.size());
         int startOffset = byteWriter.position();
         for (var element : value) {
+          // Align the element.
+          var lastRelativeEnd = byteWriter.position() - startOffset;
+          byteWriter.write(new byte[align(lastRelativeEnd, alignment()) - lastRelativeEnd]);
+
+          // Encode the element.
           elementDecoder.encode(element, byteWriter);
+
+          // Record the framing offset of the element.
           var relativeEnd = byteWriter.position() - startOffset;
           framingOffsets.add(relativeEnd);
-
-          // Align the next element.
-          byteWriter.write(new byte[align(relativeEnd, alignment()) - relativeEnd]);
         }
 
         // Write the framing offsets.
@@ -710,27 +715,42 @@ public abstract class Decoder<T> {
     @Override
     @SuppressWarnings("unchecked")
     void encode(Object[] value, ByteWriter byteWriter) {
+      // The unit type is encoded as a single zero byte.
+      if (value.length == 0) {
+        byteWriter.write((byte) 0);
+        return;
+      }
+
       int startOffset = byteWriter.position();
       ArrayList<Integer> framingOffsets = new ArrayList<>(value.length);
       for (int i = 0; i < value.length; ++i) {
         var componentDecoder = (Decoder<Object>) componentDecoders[i];
+
+        // Align the element.
+        var lastRelativeEnd = byteWriter.position() - startOffset;
+        byteWriter.write(new byte[align(lastRelativeEnd, componentDecoder.alignment()) - lastRelativeEnd]);
+
+        // Encode the element.
         componentDecoder.encode(value[i], byteWriter);
 
-        var relativeEnd = byteWriter.position() - startOffset;
-
+        // Record the framing offset of the element if it is of variable size.
         var fixedComponentSize = componentDecoders[i].fixedSize();
         if (fixedComponentSize == null && i < value.length - 1) {
+          var relativeEnd = byteWriter.position() - startOffset;
           framingOffsets.add(relativeEnd);
         }
-
-        // Align the next element.
-        byteWriter.write(new byte[align(relativeEnd, alignment()) - relativeEnd]);
       }
 
       // Write the framing offsets in reverse order.
       int framingOffsetSize = computeFramingOffsetSize(byteWriter.position() - startOffset, framingOffsets);
       for (int i = framingOffsets.size() - 1; i >= 0; --i) {
         byteWriter.writeIntN(framingOffsets.get(i), framingOffsetSize);
+      }
+
+      // Pad the structure to its alignment if it is of fixed size.
+      if (fixedSize() != null) {
+        var lastRelativeEnd = byteWriter.position() - startOffset;
+        byteWriter.write(new byte[align(lastRelativeEnd, alignment()) - lastRelativeEnd]);
       }
     }
   }
@@ -975,7 +995,7 @@ public abstract class Decoder<T> {
 
     @Override
     void encode(String value, ByteWriter byteWriter) {
-      byteWriter.write(charset.encode(value));
+      byteWriter.write(charset.encode(value).rewind());
       byteWriter.write((byte) 0);
     }
   }
@@ -1044,7 +1064,7 @@ public abstract class Decoder<T> {
       var innerByteWriter = new ByteWriter();
       Decoder.this.encode(value, innerByteWriter);
       var transformedBuffer = encodingFunction.apply(innerByteWriter.toByteBuffer());
-      byteWriter.write(transformedBuffer);
+      byteWriter.write(transformedBuffer.rewind());
     }
   }
 
@@ -1136,7 +1156,7 @@ public abstract class Decoder<T> {
   }
 
   private static class ByteWriter {
-    private ByteOrder byteOrder = ByteOrder.nativeOrder();
+    private ByteOrder byteOrder = BIG_ENDIAN;
     private final ByteArrayOutputStream outputStream;
 
     ByteWriter() {
@@ -1167,19 +1187,19 @@ public abstract class Decoder<T> {
     }
 
     void write(int value) {
-      write(ByteBuffer.allocate(4).order(byteOrder).putInt(value));
+      write(ByteBuffer.allocate(4).order(byteOrder).putInt(value).rewind());
     }
 
     void write(long value) {
-      write(ByteBuffer.allocate(8).order(byteOrder).putLong(value));
+      write(ByteBuffer.allocate(8).order(byteOrder).putLong(value).rewind());
     }
 
     void write(short value) {
-      write(ByteBuffer.allocate(2).order(byteOrder).putShort(value));
+      write(ByteBuffer.allocate(2).order(byteOrder).putShort(value).rewind());
     }
 
     void write(double value) {
-      write(ByteBuffer.allocate(8).order(byteOrder).putDouble(value));
+      write(ByteBuffer.allocate(8).order(byteOrder).putDouble(value).rewind());
     }
 
     private void writeIntN(int value, int byteCount) {
@@ -1195,7 +1215,7 @@ public abstract class Decoder<T> {
           default ->
             throw new IllegalArgumentException("invalid byte count: %d".formatted(byteCount));
         }
-      write(byteBuffer);
+      write(byteBuffer.rewind());
     }
 
     ByteWriter duplicate() {
