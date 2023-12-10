@@ -156,7 +156,7 @@ public record DeltaPartPayload(
             Decoder.ofByteArray()
                 .map(
                     bytes -> parseDeltaOperationList(bytes, objectTypes),
-                    deltaOperations -> serializeDeltaOperationList(deltaOperations)))
+                    DeltaPartPayload::serializeDeltaOperationList))
         .contramap(DeltaPartPayload::decompress, DeltaPartPayload::compress);
   }
 }

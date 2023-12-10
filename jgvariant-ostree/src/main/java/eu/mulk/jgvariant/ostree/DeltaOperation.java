@@ -69,16 +69,16 @@ public sealed interface DeltaOperation {
   }
 
   default void writeTo(ByteArrayOutputStream output) {
-    if (this instanceof OpenSpliceAndCloseMeta openSpliceAndCloseMeta) {
-      output.write(DeltaOperationType.OPEN_SPLICE_AND_CLOSE.byteValue());
-      writeVarint64(output, openSpliceAndCloseMeta.offset);
-      writeVarint64(output, openSpliceAndCloseMeta.size);
-    } else if (this instanceof OpenSpliceAndCloseReal openSpliceAndCloseReal) {
+    if (this instanceof OpenSpliceAndCloseReal openSpliceAndCloseReal) {
       output.write(DeltaOperationType.OPEN_SPLICE_AND_CLOSE.byteValue());
       writeVarint64(output, openSpliceAndCloseReal.modeOffset);
       writeVarint64(output, openSpliceAndCloseReal.xattrOffset);
       writeVarint64(output, openSpliceAndCloseReal.size);
       writeVarint64(output, openSpliceAndCloseReal.offset);
+    } else if (this instanceof OpenSpliceAndCloseMeta openSpliceAndCloseMeta) {
+      output.write(DeltaOperationType.OPEN_SPLICE_AND_CLOSE.byteValue());
+      writeVarint64(output, openSpliceAndCloseMeta.size);
+      writeVarint64(output, openSpliceAndCloseMeta.offset);
     } else if (this instanceof Open open) {
       output.write(DeltaOperationType.OPEN.byteValue());
       writeVarint64(output, open.modeOffset);
@@ -130,16 +130,13 @@ public sealed interface DeltaOperation {
    * @see #readVarint64
    */
   private static void writeVarint64(ByteArrayOutputStream output, long value) {
-    while (value != 0) {
+    do {
       byte b = (byte) (value & 0x7F);
       value >>= 7;
       if (value != 0) {
         b |= (byte) 0x80;
       }
       output.write(b);
-      if (value == 0) {
-        break;
-      }
-    }
+    } while (value != 0);
   }
 }

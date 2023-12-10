@@ -12,18 +12,16 @@ import com.adelean.inject.resources.junit.jupiter.TestWithResources;
 import eu.mulk.jgvariant.core.Signature;
 import eu.mulk.jgvariant.core.Variant;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 
 @TestWithResources
 @SuppressWarnings({
+  "DoubleBraceInitialization",
   "ImmutableListOf1",
   "ImmutableMapOf1",
   "initialization.field.uninitialized",
-  "NullAway"
+  "NullAway",
 })
 class OstreeDecoderTest {
 
@@ -51,7 +49,8 @@ class OstreeDecoderTest {
   @Test
   void summaryDecoder() {
     var decoder = Summary.decoder();
-    var summary = decoder.decode(ByteBuffer.wrap(summaryBytes));
+    var input = ByteBuffer.wrap(summaryBytes);
+    var summary = decoder.decode(input);
 
     assertAll(
         () ->
@@ -70,35 +69,49 @@ class OstreeDecoderTest {
                 summary.entries()),
         () ->
             assertEquals(
-                Map.of(
-                    "ostree.summary.last-modified",
-                    new Variant(Signature.parse("t"), 1640537300L),
-                    "ostree.summary.tombstone-commits",
-                    new Variant(Signature.parse("b"), false),
-                    "ostree.static-deltas",
-                    new Variant(
-                        Signature.parse("a{sv}"),
-                        Map.of(
-                            "3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f-66ff167ff35ce87daac817447a9490a262ee75f095f017716a6eb1a9d9eb3350",
-                            new Variant(
-                                Signature.parse("ay"),
-                                bytesOfHex(
-                                    "03738040e28e7662e9c9d2599c530ea974e642c9f87e6c00cbaa39a0cdac8d44")),
-                            "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52",
-                            new Variant(
-                                Signature.parse("ay"),
-                                bytesOfHex(
-                                    "f481144629474bd88c106e45ac405ebd75b324b0655af1aec14b31786ae1fd61")),
-                            "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52-3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f",
-                            new Variant(
-                                Signature.parse("ay"),
-                                bytesOfHex(
-                                    "2c6a07bc1cf4d7ce7d00f82d7d2d6d156fd0e31d476851b46dc2306b181b064a")))),
-                    "ostree.summary.mode",
-                    new Variant(Signature.parse("s"), "bare"),
-                    "ostree.summary.indexed-deltas",
-                    new Variant(Signature.parse("b"), true)),
+                new LinkedHashMap<String, Variant>() {
+                  {
+                    put("ostree.summary.mode", new Variant(Signature.parse("s"), "bare"));
+                    put(
+                        "ostree.summary.last-modified",
+                        new Variant(Signature.parse("t"), 1640537300L));
+                    put(
+                        "ostree.summary.tombstone-commits",
+                        new Variant(Signature.parse("b"), false));
+                    put(
+                        "ostree.static-deltas",
+                        new Variant(
+                            Signature.parse("a{sv}"),
+                            new LinkedHashMap<String, Variant>() {
+                              {
+                                put(
+                                    "3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f-66ff167ff35ce87daac817447a9490a262ee75f095f017716a6eb1a9d9eb3350",
+                                    new Variant(
+                                        Signature.parse("ay"),
+                                        bytesOfHex(
+                                            "03738040e28e7662e9c9d2599c530ea974e642c9f87e6c00cbaa39a0cdac8d44")));
+                                put(
+                                    "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52",
+                                    new Variant(
+                                        Signature.parse("ay"),
+                                        bytesOfHex(
+                                            "f481144629474bd88c106e45ac405ebd75b324b0655af1aec14b31786ae1fd61")));
+                                put(
+                                    "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52-3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f",
+                                    new Variant(
+                                        Signature.parse("ay"),
+                                        bytesOfHex(
+                                            "2c6a07bc1cf4d7ce7d00f82d7d2d6d156fd0e31d476851b46dc2306b181b064a")));
+                              }
+                            }));
+                    put("ostree.summary.indexed-deltas", new Variant(Signature.parse("b"), true));
+                  }
+                },
                 summary.metadata().fields()));
+
+    var encoded = decoder.encode(summary);
+    input.rewind();
+    assertEquals(input, encoded);
 
     System.out.println(summary);
   }
@@ -106,29 +119,52 @@ class OstreeDecoderTest {
   @Test
   void commitDecoder() {
     var decoder = Commit.decoder();
-    var commit = decoder.decode(ByteBuffer.wrap(commitBytes));
+    var input = ByteBuffer.wrap(commitBytes);
+    var commit = decoder.decode(input);
+
+    var encoded = decoder.encode(commit);
+    input.rewind();
+    assertEquals(input, encoded);
+
     System.out.println(commit);
   }
 
   @Test
   void dirTreeDecoder() {
     var decoder = DirTree.decoder();
-    var dirTree = decoder.decode(ByteBuffer.wrap(dirTreeBytes));
+    var input = ByteBuffer.wrap(dirTreeBytes);
+    var dirTree = decoder.decode(input);
+
+    var encoded = decoder.encode(dirTree);
+    input.rewind();
+    assertEquals(input, encoded);
+
     System.out.println(dirTree);
   }
 
   @Test
   void dirMetaDecoder() {
     var decoder = DirMeta.decoder();
+    var input = ByteBuffer.wrap(dirMetaBytes);
     var dirMeta = decoder.decode(ByteBuffer.wrap(dirMetaBytes));
+
+    var encoded = decoder.encode(dirMeta);
+    input.rewind();
+    assertEquals(input, encoded);
+
     System.out.println(dirMeta);
   }
 
   @Test
   void superblockDecoder() {
     var decoder = DeltaSuperblock.decoder();
-    var deltaSuperblock = decoder.decode(ByteBuffer.wrap(deltaSuperblockBytes));
+    var input = ByteBuffer.wrap(deltaSuperblockBytes);
+    var deltaSuperblock = decoder.decode(input);
     System.out.println(deltaSuperblock);
+
+    var encoded = decoder.encode(deltaSuperblock);
+    input.rewind();
+    assertEquals(input, encoded);
   }
 
   @Test
@@ -137,9 +173,12 @@ class OstreeDecoderTest {
     var superblock = superblockDecoder.decode(ByteBuffer.wrap(deltaSuperblockBytes));
 
     var decoder = DeltaPartPayload.decoder(superblock.entries().get(0));
-    var deltaPartPayload = decoder.decode(ByteBuffer.wrap(deltaPartPayloadBytes));
+    var input = ByteBuffer.wrap(deltaPartPayloadBytes);
+    var deltaPartPayload = decoder.decode(input);
 
-    System.out.println(deltaPartPayload);
+    var encoded = decoder.encode(deltaPartPayload);
+    var decodedAgain = decoder.decode(encoded);
+    assertEquals(deltaPartPayload, decodedAgain);
   }
 
   private static List<Byte> bytesOfHex(String hex) {

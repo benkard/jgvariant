@@ -18,7 +18,11 @@ public record Checksum(ByteString byteString) {
   private static final int SIZE = 32;
 
   private static final Decoder<Checksum> DECODER =
-      ByteString.decoder().map(Checksum::new, Checksum::byteString);
+      ByteString.decoder().map(Checksum::new, Checksum::optimizedByteString);
+
+  private static final ByteString NULL_BYTESTRING = new ByteString(new byte[0]);
+
+  private static final Checksum ZERO = new Checksum(new ByteString(new byte[SIZE]));
 
   public Checksum {
     if (byteString.size() == 0) {
@@ -47,7 +51,11 @@ public record Checksum(ByteString byteString) {
    * @return a checksum whose bits are all zero.
    */
   public static Checksum zero() {
-    return new Checksum(new ByteString(new byte[SIZE]));
+    return ZERO;
+  }
+
+  public ByteString optimizedByteString() {
+    return isEmpty() ? NULL_BYTESTRING : byteString;
   }
 
   /**
@@ -56,7 +64,7 @@ public record Checksum(ByteString byteString) {
    * @return {@code true} if the byte string is equal to {@link #zero()}, {@code false} otherwise.
    */
   public boolean isEmpty() {
-    return equals(zero());
+    return equals(ZERO);
   }
 
   /**

@@ -67,8 +67,8 @@ public record DeltaMetaEntry(
     var output = new ByteArrayOutputStream();
 
     for (var deltaObject : deltaObjects) {
-      output.write(deltaObject.objectType.byteValue());
-      output.writeBytes(deltaObject.checksum.byteString().bytes());
+      output.write(deltaObject.objectType().byteValue());
+      output.writeBytes(deltaObject.checksum().byteString().bytes());
     }
 
     return output.toByteArray();

@@ -163,7 +163,6 @@ class DecoderTest {
     entity.put("hi", -2);
     entity.put("bye", -1);
     var roundtripData = decoder.encode(entity);
-    System.out.println(HexFormat.of().formatHex(roundtripData.array()));
     assertArrayEquals(data, roundtripData.array());
   }
 
