@@ -22,13 +22,8 @@ import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -485,7 +480,11 @@ public abstract class Decoder<T> {
     @Override
     public @NotNull Map<K, V> decode(ByteBuffer byteSlice) {
       List<Map.Entry<K, V>> entries = entryArrayDecoder.decode(byteSlice);
-      return entries.stream().collect(toMap(Entry::getKey, Entry::getValue));
+      Map<K, V> result = new LinkedHashMap<>();
+      for (var entry : entries) {
+        result.put(entry.getKey(), entry.getValue());
+      }
+      return result;
     }
 
     @Override
