@@ -20,7 +20,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public record ByteString(byte[] bytes) {
 
-  private static final Decoder<ByteString> DECODER = Decoder.ofByteArray().map(ByteString::new);
+  private static final Decoder<ByteString> DECODER =
+      Decoder.ofByteArray().map(ByteString::new, ByteString::bytes);
 
   /**
    * Returns a decoder for a {@code byte[]} that wraps the result in {@link ByteString}.

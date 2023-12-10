@@ -22,7 +22,8 @@ import java.util.Map;
 public record SummarySignature(Map<String, Variant> signatures) {
 
   private static final Decoder<SummarySignature> DECODER =
-      Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofVariant()).map(SummarySignature::new);
+      Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofVariant())
+          .map(SummarySignature::new, SummarySignature::signatures);
 
   /**
    * Acquires a {@link Decoder} for the enclosing type.

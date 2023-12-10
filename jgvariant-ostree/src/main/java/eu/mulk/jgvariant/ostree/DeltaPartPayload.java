@@ -8,12 +8,14 @@ import eu.mulk.jgvariant.core.Decoder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.List;
+import org.tukaani.xz.LZMA2Options;
 import org.tukaani.xz.XZInputStream;
+import org.tukaani.xz.XZOutputStream;
 
 /**
  * A payload file from a static delta.
@@ -36,7 +38,7 @@ public record DeltaPartPayload(
     ByteString rawDataSource,
     List<DeltaOperation> operations) {
 
-  private static ByteBuffer preparse(ByteBuffer byteBuffer) {
+  private static ByteBuffer decompress(ByteBuffer byteBuffer) {
     byte compressionByte = byteBuffer.get(0);
     var dataSlice = byteBuffer.slice(1, byteBuffer.limit() - 1);
     return switch (compressionByte) {
@@ -53,7 +55,7 @@ public record DeltaPartPayload(
           yield ByteBuffer.wrap(decompressedOutputStream.toByteArray());
         } catch (IOException e) {
           // impossible
-          throw new UncheckedIOException(e);
+          throw new IllegalStateException(e);
         }
       }
       default -> throw new IllegalArgumentException(
@@ -61,10 +63,42 @@ public record DeltaPartPayload(
     };
   }
 
+  private static ByteBuffer compress(ByteBuffer dataSlice) {
+    var dataBytes = new byte[dataSlice.limit()];
+    dataSlice.get(dataBytes);
+    var compressedOutputStream = new ByteArrayOutputStream();
+
+    byte compressionByte = 'x';
+    compressedOutputStream.write(compressionByte);
+
+    try (var compressingOutputStream =
+            new XZOutputStream(compressedOutputStream, new LZMA2Options());
+        var compressingChannel = Channels.newChannel(compressingOutputStream)) {
+      compressingChannel.write(dataSlice);
+      compressingOutputStream.write(dataBytes);
+    } catch (IOException e) {
+      // impossible
+      throw new IllegalStateException(e);
+    }
+
+    var compressedBytes = compressedOutputStream.toByteArray();
+    return ByteBuffer.wrap(compressedBytes);
+  }
+
+  private static byte[] serializeDeltaOperationList(List<DeltaOperation> deltaOperations) {
+    var output = new ByteArrayOutputStream();
+
+    for (var currentOperation : deltaOperations) {
+      currentOperation.writeTo(output);
+    }
+
+    return output.toByteArray();
+  }
+
   private static List<DeltaOperation> parseDeltaOperationList(
-      ByteString byteString, List<ObjectType> objectTypes) {
+      byte[] bytes, List<ObjectType> objectTypes) {
     List<DeltaOperation> deltaOperations = new ArrayList<>();
-    var byteBuffer = ByteBuffer.wrap(byteString.bytes());
+    var byteBuffer = ByteBuffer.wrap(bytes);
     int objectIndex = 0;
 
     while (byteBuffer.hasRemaining()) {
@@ -119,8 +153,10 @@ public record DeltaPartPayload(
             Decoder.ofArray(FileMode.decoder()),
             Decoder.ofArray(Decoder.ofArray(Xattr.decoder())),
             ByteString.decoder(),
-            ByteString.decoder()
-                .map(byteString -> parseDeltaOperationList(byteString, objectTypes)))
-        .contramap(DeltaPartPayload::preparse);
+            Decoder.ofByteArray()
+                .map(
+                    bytes -> parseDeltaOperationList(bytes, objectTypes),
+                    deltaOperations -> serializeDeltaOperationList(deltaOperations)))
+        .contramap(DeltaPartPayload::decompress, DeltaPartPayload::compress);
   }
 }

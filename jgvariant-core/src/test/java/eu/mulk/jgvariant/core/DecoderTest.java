@@ -517,21 +517,39 @@ class DecoderTest {
   @Test
   void map() {
     var data = new byte[] {0x0A, 0x0B, 0x0C};
-    var decoder = Decoder.ofByteArray().map(bytes -> bytes.length);
+    var decoder =
+        Decoder.ofByteArray()
+            .map(
+                bytes -> bytes.length,
+                len -> {
+                  throw new UnsupportedOperationException();
+                });
     assertEquals(3, decoder.decode(ByteBuffer.wrap(data)));
   }
 
   @Test
   void contramap() {
     var data = new byte[] {0x0A, 0x0B, 0x0C};
-    var decoder = Decoder.ofByteArray().contramap(bytes -> bytes.slice(1, 1));
+    var decoder =
+        Decoder.ofByteArray()
+            .contramap(
+                bytes -> bytes.slice(1, 1),
+                bytes -> {
+                  throw new UnsupportedOperationException();
+                });
     assertArrayEquals(new byte[] {0x0B}, decoder.decode(ByteBuffer.wrap(data)));
   }
 
   @Test
   void predicateTrue() {
     var data = new byte[] {0x00, 0x01, 0x00};
-    var innerDecoder = Decoder.ofShort().contramap(bytes -> bytes.slice(1, 2).order(bytes.order()));
+    var innerDecoder =
+        Decoder.ofShort()
+            .contramap(
+                bytes -> bytes.slice(1, 2).order(bytes.order()),
+                bytes -> {
+                  throw new UnsupportedOperationException();
+                });
     var decoder =
         Decoder.ofPredicate(
             byteBuffer -> byteBuffer.get(0) == 0,
@@ -543,7 +561,13 @@ class DecoderTest {
   @Test
   void predicateFalse() {
     var data = new byte[] {0x01, 0x01, 0x00};
-    var innerDecoder = Decoder.ofShort().contramap(bytes -> bytes.slice(1, 2).order(bytes.order()));
+    var innerDecoder =
+        Decoder.ofShort()
+            .contramap(
+                bytes -> bytes.slice(1, 2).order(bytes.order()),
+                bytes -> {
+                  throw new UnsupportedOperationException();
+                });
     var decoder =
         Decoder.ofPredicate(
             byteBuffer -> byteBuffer.get(0) == 0,

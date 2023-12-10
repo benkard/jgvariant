@@ -31,11 +31,18 @@ public record SignedDelta(
       Decoder.ofStructure(
           SignedDelta.class,
           Decoder.ofLong().withByteOrder(ByteOrder.BIG_ENDIAN),
-          ByteString.decoder().map(SignedDelta::decodeSuperblock),
+          Decoder.ofByteArray().map(SignedDelta::decodeSuperblock, SignedDelta::encodeSuperblock),
           Decoder.ofDictionary(Decoder.ofString(US_ASCII), Decoder.ofVariant()));
 
-  private static DeltaSuperblock decodeSuperblock(ByteString byteString) {
-    return DeltaSuperblock.decoder().decode(ByteBuffer.wrap(byteString.bytes()));
+  private static DeltaSuperblock decodeSuperblock(byte[] bytes) {
+    return DeltaSuperblock.decoder().decode(ByteBuffer.wrap(bytes));
+  }
+
+  private static byte[] encodeSuperblock(DeltaSuperblock deltaSuperblock) {
+    var byteBuffer = DeltaSuperblock.decoder().encode(deltaSuperblock);
+    byte[] bytes = new byte[byteBuffer.remaining()];
+    byteBuffer.get(bytes);
+    return bytes;
   }
 
   /**

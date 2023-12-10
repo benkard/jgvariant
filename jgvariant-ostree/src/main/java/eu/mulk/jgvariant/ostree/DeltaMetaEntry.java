@@ -5,6 +5,7 @@
 package eu.mulk.jgvariant.ostree;
 
 import eu.mulk.jgvariant.core.Decoder;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -38,7 +39,9 @@ public record DeltaMetaEntry(
 
     private static final Decoder<DeltaObject> DECODER =
         Decoder.ofStructure(
-            DeltaObject.class, Decoder.ofByte().map(ObjectType::valueOf), Checksum.decoder());
+            DeltaObject.class,
+            Decoder.ofByte().map(ObjectType::valueOf, ObjectType::byteValue),
+            Checksum.decoder());
 
     /**
      * Acquires a {@link Decoder} for the enclosing type.
@@ -57,7 +60,19 @@ public record DeltaMetaEntry(
           Checksum.decoder(),
           Decoder.ofLong(),
           Decoder.ofLong(),
-          Decoder.ofByteArray().map(DeltaMetaEntry::parseObjectList));
+          Decoder.ofByteArray()
+              .map(DeltaMetaEntry::parseObjectList, DeltaMetaEntry::serializeObjectList));
+
+  private static byte[] serializeObjectList(List<DeltaObject> deltaObjects) {
+    var output = new ByteArrayOutputStream();
+
+    for (var deltaObject : deltaObjects) {
+      output.write(deltaObject.objectType.byteValue());
+      output.writeBytes(deltaObject.checksum.byteString().bytes());
+    }
+
+    return output.toByteArray();
+  }
 
   private static List<DeltaObject> parseObjectList(byte[] bytes) {
     var byteBuffer = ByteBuffer.wrap(bytes);

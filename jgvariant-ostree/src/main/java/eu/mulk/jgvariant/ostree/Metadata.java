@@ -20,7 +20,8 @@ import java.util.Map;
 public record Metadata(Map<String, Variant> fields) {
 
   private static final Decoder<Metadata> DECODER =
-      Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofVariant()).map(Metadata::new);
+      Decoder.ofDictionary(Decoder.ofString(UTF_8), Decoder.ofVariant())
+          .map(Metadata::new, Metadata::fields);
 
   /**
    * Acquires a {@link Decoder} for the enclosing type.

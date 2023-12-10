@@ -4,15 +4,21 @@
 
 package eu.mulk.jgvariant.core;
 
+import static java.lang.Math.max;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.errorprone.annotations.Immutable;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.Channels;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -25,6 +31,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
 import org.jetbrains.annotations.NotNull;
@@ -80,9 +87,23 @@ public abstract class Decoder<T> {
    */
   public abstract @NotNull T decode(ByteBuffer byteSlice);
 
+  /**
+   * Encodes a value of type {@code T} into a {@link ByteBuffer} holding a serialized GVariant.
+   *
+   * @param value the value to serialize.
+   * @return a {@link ByteBuffer} holding the serialized value.
+   */
+  public final ByteBuffer encode(T value) {
+    var byteWriter = new ByteWriter();
+    encode(value, byteWriter);
+    return byteWriter.toByteBuffer();
+  }
+
   abstract byte alignment();
 
   abstract @Nullable Integer fixedSize();
+
+  abstract void encode(T value, ByteWriter byteWriter);
 
   final boolean hasFixedSize() {
     return fixedSize() != null;
@@ -105,8 +126,8 @@ public abstract class Decoder<T> {
    * @return a new, decorated {@link Decoder}.
    * @see java.util.stream.Stream#map
    */
-  public final <U> Decoder<U> map(Function<@NotNull T, @NotNull U> function) {
-    return new MappingDecoder<>(function);
+  public final <U> Decoder<U> map(Function<@NotNull T, @NotNull U> decodingFunction, Function<@NotNull U, @NotNull T> encodingFunction) {
+    return new MappingDecoder<>(decodingFunction, encodingFunction);
   }
 
   /**
@@ -116,8 +137,8 @@ public abstract class Decoder<T> {
    * @return a new, decorated {@link Decoder}.
    * @see java.util.stream.Stream#map
    */
-  public final Decoder<T> contramap(UnaryOperator<ByteBuffer> function) {
-    return new ContramappingDecoder(function);
+  public final Decoder<T> contramap(UnaryOperator<ByteBuffer> decodingFunction, UnaryOperator<ByteBuffer> encodingFunction) {
+    return new ContramappingDecoder(decodingFunction, encodingFunction);
   }
 
   /**
@@ -335,6 +356,22 @@ public abstract class Decoder<T> {
     return n < (1 << 8) ? 1 : n < (1 << 16) ? 2 : 4;
   }
 
+  private static int computeFramingOffsetSize(int elementsRelativeEnd, List<Integer> framingOffsets) {
+    // Determining the framing offset size requires trial and error.
+    int framingOffsetSize;
+    for (framingOffsetSize = 0;; framingOffsetSize = max(1, framingOffsetSize << 1)) {
+      if (elementsRelativeEnd + framingOffsetSize* framingOffsets.size() >= 1 << (8*framingOffsetSize)) {
+        continue;
+      }
+
+      if (framingOffsetSize > 4) {
+        throw new IllegalArgumentException("too many framing offsets");
+      }
+
+      return framingOffsetSize;
+    }
+  }
+
   private static class ArrayDecoder<U> extends Decoder<List<U>> {
 
     private final Decoder<U> elementDecoder;
@@ -391,6 +428,33 @@ public abstract class Decoder<T> {
 
       return elements;
     }
+
+    @Override
+    void encode(List<U> value, ByteWriter byteWriter) {
+      if (elementDecoder.hasFixedSize()) {
+        for (var element : value) {
+          elementDecoder.encode(element, byteWriter);
+        }
+      } else {
+        // Variable-width arrays are encoded with a vector of framing offsets in the end.
+        ArrayList<Integer> framingOffsets = new ArrayList<>(value.size());
+        int startOffset = byteWriter.position();
+        for (var element : value) {
+          elementDecoder.encode(element, byteWriter);
+          var relativeEnd = byteWriter.position() - startOffset;
+          framingOffsets.add(relativeEnd);
+
+          // Align the next element.
+          byteWriter.write(new byte[align(relativeEnd, alignment()) - relativeEnd]);
+        }
+
+        // Write the framing offsets.
+        int framingOffsetSize = computeFramingOffsetSize(byteWriter.position() - startOffset, framingOffsets);
+        for (var framingOffset : framingOffsets) {
+          byteWriter.writeIntN(framingOffset, framingOffsetSize);
+        }
+      }
+    }
   }
 
   private static class DictionaryDecoder<K, V> extends Decoder<Map<K, V>> {
@@ -418,6 +482,11 @@ public abstract class Decoder<T> {
       List<Map.Entry<K, V>> entries = entryArrayDecoder.decode(byteSlice);
       return entries.stream().collect(toMap(Entry::getKey, Entry::getValue));
     }
+
+    @Override
+    void encode(Map<K, V> value, ByteWriter byteWriter) {
+      entryArrayDecoder.encode(value.entrySet().stream().toList(), byteWriter);
+    }
   }
 
   private static class ByteArrayDecoder extends Decoder<byte[]> {
@@ -441,6 +510,11 @@ public abstract class Decoder<T> {
       byte[] elements = new byte[byteSlice.limit() / ELEMENT_SIZE];
       byteSlice.get(elements);
       return elements;
+    }
+
+    @Override
+    void encode(byte[] value, ByteWriter byteWriter) {
+      byteWriter.write(value);
     }
   }
 
@@ -474,6 +548,18 @@ public abstract class Decoder<T> {
         }
 
         return Optional.of(elementDecoder.decode(byteSlice));
+      }
+    }
+
+    @Override
+    void encode(Optional<U> value, ByteWriter byteWriter) {
+      if (value.isEmpty()) {
+        return;
+      }
+
+      elementDecoder.encode(value.get(), byteWriter);
+      if (!elementDecoder.hasFixedSize()) {
+        byteWriter.write((byte) 0);
       }
     }
   }
@@ -520,6 +606,22 @@ public abstract class Decoder<T> {
           | InstantiationException
           | IllegalAccessException
           | InvocationTargetException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+
+    @Override
+    void encode(U value, ByteWriter byteWriter) {
+      try {
+        var components = recordType.getRecordComponents();
+        List<Object> componentValues = new ArrayList<>(components.length);
+        for (var component : components) {
+          var accessor = component.getAccessor();
+          var componentValue = accessor.invoke(value);
+          componentValues.add(componentValue);
+        }
+        tupleDecoder.encode(componentValues.toArray(), byteWriter);
+      } catch (IllegalAccessException | InvocationTargetException e) {
         throw new IllegalStateException(e);
       }
     }
@@ -604,6 +706,33 @@ public abstract class Decoder<T> {
 
       return objects;
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    void encode(Object[] value, ByteWriter byteWriter) {
+      int startOffset = byteWriter.position();
+      ArrayList<Integer> framingOffsets = new ArrayList<>(value.length);
+      for (int i = 0; i < value.length; ++i) {
+        var componentDecoder = (Decoder<Object>) componentDecoders[i];
+        componentDecoder.encode(value[i], byteWriter);
+
+        var relativeEnd = byteWriter.position() - startOffset;
+
+        var fixedComponentSize = componentDecoders[i].fixedSize();
+        if (fixedComponentSize == null && i < value.length - 1) {
+          framingOffsets.add(relativeEnd);
+        }
+
+        // Align the next element.
+        byteWriter.write(new byte[align(relativeEnd, alignment()) - relativeEnd]);
+      }
+
+      // Write the framing offsets in reverse order.
+      int framingOffsetSize = computeFramingOffsetSize(byteWriter.position() - startOffset, framingOffsets);
+      for (int i = framingOffsets.size() - 1; i >= 0; --i) {
+        byteWriter.writeIntN(framingOffsets.get(i), framingOffsetSize);
+      }
+    }
   }
 
   private static class DictionaryEntryDecoder<K, V> extends Decoder<Map.Entry<K, V>> {
@@ -629,6 +758,11 @@ public abstract class Decoder<T> {
     public Map.@NotNull Entry<K, V> decode(ByteBuffer byteSlice) {
       Object[] components = tupleDecoder.decode(byteSlice);
       return Map.entry((K) components[0], (V) components[1]);
+    }
+
+    @Override
+    void encode(Entry<K, V> value, ByteWriter byteWriter) {
+      tupleDecoder.encode(new Object[] {value.getKey(), value.getValue()}, byteWriter);
     }
   }
 
@@ -667,6 +801,13 @@ public abstract class Decoder<T> {
 
       throw new IllegalArgumentException("variant signature not found");
     }
+
+    @Override
+    void encode(Variant value, ByteWriter byteWriter) {
+      value.signature().decoder().encode(value.value(), byteWriter);
+      byteWriter.write((byte) 0);
+      byteWriter.write(value.signature().toString().getBytes(UTF_8));
+    }
   }
 
   private static class BooleanDecoder extends Decoder<Boolean> {
@@ -684,6 +825,11 @@ public abstract class Decoder<T> {
     @Override
     public @NotNull Boolean decode(ByteBuffer byteSlice) {
       return byteSlice.get() != 0;
+    }
+
+    @Override
+    void encode(Boolean value, ByteWriter byteWriter) {
+      byteWriter.write(Boolean.TRUE.equals(value) ? (byte) 1 : (byte) 0);
     }
   }
 
@@ -703,6 +849,11 @@ public abstract class Decoder<T> {
     public @NotNull Byte decode(ByteBuffer byteSlice) {
       return byteSlice.get();
     }
+
+    @Override
+    void encode(Byte value, ByteWriter byteWriter) {
+      byteWriter.write(value);
+    }
   }
 
   private static class ShortDecoder extends Decoder<Short> {
@@ -720,6 +871,11 @@ public abstract class Decoder<T> {
     @Override
     public @NotNull Short decode(ByteBuffer byteSlice) {
       return byteSlice.getShort();
+    }
+
+    @Override
+    void encode(Short value, ByteWriter byteWriter) {
+      byteWriter.write(value);
     }
   }
 
@@ -739,6 +895,11 @@ public abstract class Decoder<T> {
     public @NotNull Integer decode(ByteBuffer byteSlice) {
       return byteSlice.getInt();
     }
+
+    @Override
+    void encode(Integer value, ByteWriter byteWriter) {
+      byteWriter.write(value);
+    }
   }
 
   private static class LongDecoder extends Decoder<Long> {
@@ -757,6 +918,11 @@ public abstract class Decoder<T> {
     public @NotNull Long decode(ByteBuffer byteSlice) {
       return byteSlice.getLong();
     }
+
+    @Override
+    void encode(Long value, ByteWriter byteWriter) {
+      byteWriter.write(value);
+    }
   }
 
   private static class DoubleDecoder extends Decoder<Double> {
@@ -774,6 +940,11 @@ public abstract class Decoder<T> {
     @Override
     public @NotNull Double decode(ByteBuffer byteSlice) {
       return byteSlice.getDouble();
+    }
+
+    @Override
+    void encode(Double value, ByteWriter byteWriter) {
+      byteWriter.write(value);
     }
   }
 
@@ -801,15 +972,23 @@ public abstract class Decoder<T> {
       byteSlice.limit(byteSlice.limit() - 1);
       return charset.decode(byteSlice).toString();
     }
+
+    @Override
+    void encode(String value, ByteWriter byteWriter) {
+      byteWriter.write(charset.encode(value));
+      byteWriter.write((byte) 0);
+    }
   }
 
   @SuppressWarnings("Immutable")
   private class MappingDecoder<U> extends Decoder<U> {
 
-    private final Function<@NotNull T, @NotNull U> function;
+    private final Function<@NotNull T, @NotNull U> decodingFunction;
+    private final Function<@NotNull U, @NotNull T> encodingFunction;
 
-    MappingDecoder(Function<@NotNull T, @NotNull U> function) {
-      this.function = function;
+    MappingDecoder(Function<@NotNull T, @NotNull U> decodingFunction, Function<@NotNull U, @NotNull T> encodingFunction) {
+      this.decodingFunction = decodingFunction;
+      this.encodingFunction = encodingFunction;
     }
 
     @Override
@@ -824,17 +1003,24 @@ public abstract class Decoder<T> {
 
     @Override
     public @NotNull U decode(ByteBuffer byteSlice) {
-      return function.apply(Decoder.this.decode(byteSlice));
+      return decodingFunction.apply(Decoder.this.decode(byteSlice));
+    }
+
+    @Override
+    void encode(U value, ByteWriter byteWriter) {
+      Decoder.this.encode(encodingFunction.apply(value), byteWriter);
     }
   }
 
   @SuppressWarnings("Immutable")
   private class ContramappingDecoder extends Decoder<T> {
 
-    private final UnaryOperator<ByteBuffer> function;
+    private final UnaryOperator<ByteBuffer> decodingFunction;
+    private final UnaryOperator<ByteBuffer> encodingFunction;
 
-    ContramappingDecoder(UnaryOperator<ByteBuffer> function) {
-      this.function = function;
+    ContramappingDecoder(UnaryOperator<ByteBuffer> decodingFunction, UnaryOperator<ByteBuffer> encodingFunction) {
+      this.decodingFunction = decodingFunction;
+      this.encodingFunction = encodingFunction;
     }
 
     @Override
@@ -849,8 +1035,16 @@ public abstract class Decoder<T> {
 
     @Override
     public @NotNull T decode(ByteBuffer byteSlice) {
-      var transformedBuffer = function.apply(byteSlice.asReadOnlyBuffer().order(byteSlice.order()));
+      var transformedBuffer = decodingFunction.apply(byteSlice.asReadOnlyBuffer().order(byteSlice.order()));
       return Decoder.this.decode(transformedBuffer);
+    }
+
+    @Override
+    void encode(T value, ByteWriter byteWriter) {
+      var innerByteWriter = new ByteWriter();
+      Decoder.this.encode(value, innerByteWriter);
+      var transformedBuffer = encodingFunction.apply(innerByteWriter.toByteBuffer());
+      byteWriter.write(transformedBuffer);
     }
   }
 
@@ -877,6 +1071,13 @@ public abstract class Decoder<T> {
       var newByteSlice = byteSlice.duplicate();
       newByteSlice.order(byteOrder);
       return Decoder.this.decode(newByteSlice);
+    }
+
+    @Override
+    protected void encode(T value, ByteWriter byteWriter) {
+      var newByteWriter = byteWriter.duplicate();
+      newByteWriter.order(byteOrder);
+      Decoder.this.encode(value, newByteWriter);
     }
   }
 
@@ -926,6 +1127,93 @@ public abstract class Decoder<T> {
       var b = selector.test(byteSlice);
       byteSlice.rewind();
       return b ? thenDecoder.decode(byteSlice) : elseDecoder.decode(byteSlice);
+    }
+
+    @Override
+    public void encode(U value, ByteWriter byteWriter) {
+      elseDecoder.encode(value, byteWriter);
+    }
+  }
+
+  private static class ByteWriter {
+    private ByteOrder byteOrder = ByteOrder.nativeOrder();
+    private final ByteArrayOutputStream outputStream;
+
+    ByteWriter() {
+      this.outputStream = new ByteArrayOutputStream();
+    }
+
+    private ByteWriter(ByteArrayOutputStream outputStream) {
+      this.outputStream = outputStream;
+    }
+
+    void write(byte[] bytes) {
+      outputStream.write(bytes, 0, bytes.length);
+    }
+
+    @SuppressWarnings("java:S2095")
+    void write(ByteBuffer byteBuffer) {
+      var channel = Channels.newChannel(outputStream);
+      try {
+        channel.write(byteBuffer);
+      } catch (IOException e) {
+        // impossible
+        throw new IllegalStateException(e);
+      }
+    }
+
+    void write(byte value) {
+      outputStream.write(value);
+    }
+
+    void write(int value) {
+      write(ByteBuffer.allocate(4).order(byteOrder).putInt(value));
+    }
+
+    void write(long value) {
+      write(ByteBuffer.allocate(8).order(byteOrder).putLong(value));
+    }
+
+    void write(short value) {
+      write(ByteBuffer.allocate(2).order(byteOrder).putShort(value));
+    }
+
+    void write(double value) {
+      write(ByteBuffer.allocate(8).order(byteOrder).putDouble(value));
+    }
+
+    private void writeIntN(int value, int byteCount) {
+      var byteBuffer = ByteBuffer.allocate(byteCount).order(LITTLE_ENDIAN);
+        switch (byteCount) {
+          case 0 -> {}
+          case 1 ->
+            byteBuffer.put((byte) value);
+          case 2 ->
+            byteBuffer.putShort((short) value);
+          case 4 ->
+            byteBuffer.putInt(value);
+          default ->
+            throw new IllegalArgumentException("invalid byte count: %d".formatted(byteCount));
+        }
+      write(byteBuffer);
+    }
+
+    ByteWriter duplicate() {
+        var duplicate = new ByteWriter(outputStream);
+        duplicate.byteOrder = byteOrder;
+        return duplicate;
+    }
+
+    ByteBuffer toByteBuffer() {
+      return ByteBuffer.wrap(outputStream.toByteArray());
+    }
+
+    void order(ByteOrder byteOrder) {
+        this.byteOrder = byteOrder;
+    }
+
+    int position() {
+      return outputStream.size();
     }
   }
 }

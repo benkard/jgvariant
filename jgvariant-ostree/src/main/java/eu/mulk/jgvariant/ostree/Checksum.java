@@ -17,7 +17,8 @@ public record Checksum(ByteString byteString) {
 
   private static final int SIZE = 32;
 
-  private static final Decoder<Checksum> DECODER = ByteString.decoder().map(Checksum::new);
+  private static final Decoder<Checksum> DECODER =
+      ByteString.decoder().map(Checksum::new, Checksum::byteString);
 
   public Checksum {
     if (byteString.size() == 0) {

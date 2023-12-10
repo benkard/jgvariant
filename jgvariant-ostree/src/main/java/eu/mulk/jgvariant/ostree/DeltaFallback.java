@@ -25,7 +25,7 @@ public record DeltaFallback(
   private static final Decoder<DeltaFallback> DECODER =
       Decoder.ofStructure(
           DeltaFallback.class,
-          Decoder.ofByte().map(ObjectType::valueOf),
+          Decoder.ofByte().map(ObjectType::valueOf, ObjectType::byteValue),
           Checksum.decoder(),
           Decoder.ofLong(),
           Decoder.ofLong());

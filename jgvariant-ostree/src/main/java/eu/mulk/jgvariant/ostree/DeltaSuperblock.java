@@ -5,10 +5,16 @@
 package eu.mulk.jgvariant.ostree;
 
 import eu.mulk.jgvariant.core.Decoder;
+import eu.mulk.jgvariant.core.Signature;
+import eu.mulk.jgvariant.core.Variant;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A static delta.
@@ -67,10 +73,34 @@ public record DeltaSuperblock(
               Checksum.decoder(),
               Checksum.decoder(),
               Commit.decoder(),
-              Decoder.ofByteArray().map(DeltaSuperblock::parseDeltaNameList),
+              Decoder.ofByteArray()
+                  .map(
+                      DeltaSuperblock::parseDeltaNameList, DeltaSuperblock::serializeDeltaNameList),
               Decoder.ofArray(DeltaMetaEntry.decoder()).withByteOrder(ByteOrder.LITTLE_ENDIAN),
               Decoder.ofArray(DeltaFallback.decoder()).withByteOrder(ByteOrder.LITTLE_ENDIAN))
-          .map(DeltaSuperblock::byteSwappedIfBigEndian);
+          .map(DeltaSuperblock::byteSwappedIfBigEndian, DeltaSuperblock::withSpecifiedByteOrder);
+
+  private DeltaSuperblock withSpecifiedByteOrder() {
+    Map<String, Variant> extendedMetadataMap = new HashMap<>(metadata().fields());
+
+    try {
+      extendedMetadataMap.putIfAbsent(
+          "ostree.endianness", new Variant(Signature.parse("y"), (byte) 'l'));
+    } catch (ParseException e) {
+      // impossible
+      throw new IllegalStateException(e);
+    }
+
+    return new DeltaSuperblock(
+        new Metadata(extendedMetadataMap),
+        timestamp,
+        fromChecksum,
+        toChecksum,
+        commit,
+        dependencies,
+        entries,
+        fallbacks);
+  }
 
   private DeltaSuperblock byteSwappedIfBigEndian() {
     // Fix up the endianness of the 'entries' and 'fallbacks' fields, which have
@@ -95,6 +125,17 @@ public record DeltaSuperblock(
         dependencies,
         entries.stream().map(DeltaMetaEntry::byteSwapped).toList(),
         fallbacks.stream().map(DeltaFallback::byteSwapped).toList());
+  }
+
+  private static byte[] serializeDeltaNameList(List<DeltaName> deltaNames) {
+    var output = new ByteArrayOutputStream();
+
+    for (var deltaName : deltaNames) {
+      output.writeBytes(deltaName.fromChecksum().byteString().bytes());
+      output.writeBytes(deltaName.toChecksum().byteString().bytes());
+    }
+
+    return output.toByteArray();
   }
 
   private static List<DeltaName> parseDeltaNameList(byte[] bytes) {
