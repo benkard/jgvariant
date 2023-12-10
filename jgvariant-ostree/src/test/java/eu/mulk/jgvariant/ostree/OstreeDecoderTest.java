@@ -110,10 +110,9 @@ class OstreeDecoderTest {
                 summary.metadata().fields()));
 
     var encoded = decoder.encode(summary);
+
     input.rewind();
     assertEquals(input, encoded);
-
-    System.out.println(summary);
   }
 
   @Test
@@ -123,10 +122,9 @@ class OstreeDecoderTest {
     var commit = decoder.decode(input);
 
     var encoded = decoder.encode(commit);
+
     input.rewind();
     assertEquals(input, encoded);
-
-    System.out.println(commit);
   }
 
   @Test
@@ -136,10 +134,9 @@ class OstreeDecoderTest {
     var dirTree = decoder.decode(input);
 
     var encoded = decoder.encode(dirTree);
+
     input.rewind();
     assertEquals(input, encoded);
-
-    System.out.println(dirTree);
   }
 
   @Test
@@ -149,10 +146,9 @@ class OstreeDecoderTest {
     var dirMeta = decoder.decode(ByteBuffer.wrap(dirMetaBytes));
 
     var encoded = decoder.encode(dirMeta);
+
     input.rewind();
     assertEquals(input, encoded);
-
-    System.out.println(dirMeta);
   }
 
   @Test
@@ -160,9 +156,9 @@ class OstreeDecoderTest {
     var decoder = DeltaSuperblock.decoder();
     var input = ByteBuffer.wrap(deltaSuperblockBytes);
     var deltaSuperblock = decoder.decode(input);
-    System.out.println(deltaSuperblock);
 
     var encoded = decoder.encode(deltaSuperblock);
+
     input.rewind();
     assertEquals(input, encoded);
   }

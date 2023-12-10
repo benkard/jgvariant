@@ -10,6 +10,7 @@
 *~
 .envrc
 .flattened-pom.xml
+.jqwik-database
 /.idea
 /jgvariant-*/target
 /target

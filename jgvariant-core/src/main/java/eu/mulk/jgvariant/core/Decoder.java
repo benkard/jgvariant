@@ -342,14 +342,22 @@ public abstract class Decoder<T> {
   }
 
   private static int getIntN(ByteBuffer byteSlice) {
-    var intBytes = new byte[4];
-    byteSlice.get(intBytes, 0, Math.min(4, byteSlice.limit()));
-    return ByteBuffer.wrap(intBytes).order(LITTLE_ENDIAN).getInt();
+    return switch (byteSlice.limit()) {
+      case 0 -> 0;
+      case 1 ->
+        Byte.toUnsignedInt(byteSlice.order(LITTLE_ENDIAN).get());
+      case 2 ->
+        Short.toUnsignedInt(byteSlice.order(LITTLE_ENDIAN).getShort());
+      case 4 ->
+        byteSlice.order(LITTLE_ENDIAN).getInt();
+      default ->
+        throw new IllegalArgumentException("invalid byte count: %d".formatted(byteSlice.limit()));
+    };
   }
 
   @SuppressWarnings("java:S3358")
   private static int byteCount(int n) {
-    return n < (1 << 8) ? 1 : n < (1 << 16) ? 2 : 4;
+    return n == 0 ? 0 : n < (1 << 8) ? 1 : n < (1 << 16) ? 2 : 4;
   }
 
   private static int computeFramingOffsetSize(int elementsRelativeEnd, List<Integer> framingOffsets) {
@@ -404,7 +412,7 @@ public abstract class Decoder<T> {
         elements = List.of();
       } else {
         // An array with aligned elements and a vector of framing offsets in the end.
-        int framingOffsetSize = byteCount(byteSlice.limit());
+        int framingOffsetSize = max(1, byteCount(byteSlice.limit()));
         int lastFramingOffset =
             getIntN(byteSlice.slice(byteSlice.limit() - framingOffsetSize, framingOffsetSize));
         int elementCount = (byteSlice.limit() - lastFramingOffset) / framingOffsetSize;
