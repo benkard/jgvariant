@@ -12,6 +12,8 @@ import com.adelean.inject.resources.junit.jupiter.TestWithResources;
 import eu.mulk.jgvariant.core.Signature;
 import eu.mulk.jgvariant.core.Variant;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,7 @@ class OstreeDecoderTest {
   void summaryDecoder() {
     var decoder = Summary.decoder();
     var summary = decoder.decode(ByteBuffer.wrap(summaryBytes));
+
     assertAll(
         () ->
             assertEquals(
@@ -64,8 +67,39 @@ class OstreeDecoderTest {
                                 Map.of(
                                     "ostree.commit.timestamp",
                                     new Variant(Signature.parse("t"), 1640537170L)))))),
-                summary.entries()));
-    // FIXME: check metadata field
+                summary.entries()),
+        () ->
+            assertEquals(
+                Map.of(
+                    "ostree.summary.last-modified",
+                    new Variant(Signature.parse("t"), 1640537300L),
+                    "ostree.summary.tombstone-commits",
+                    new Variant(Signature.parse("b"), false),
+                    "ostree.static-deltas",
+                    new Variant(
+                        Signature.parse("a{sv}"),
+                        Map.of(
+                            "3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f-66ff167ff35ce87daac817447a9490a262ee75f095f017716a6eb1a9d9eb3350",
+                            new Variant(
+                                Signature.parse("ay"),
+                                bytesOfHex(
+                                    "03738040e28e7662e9c9d2599c530ea974e642c9f87e6c00cbaa39a0cdac8d44")),
+                            "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52",
+                            new Variant(
+                                Signature.parse("ay"),
+                                bytesOfHex(
+                                    "f481144629474bd88c106e45ac405ebd75b324b0655af1aec14b31786ae1fd61")),
+                            "31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52-3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f",
+                            new Variant(
+                                Signature.parse("ay"),
+                                bytesOfHex(
+                                    "2c6a07bc1cf4d7ce7d00f82d7d2d6d156fd0e31d476851b46dc2306b181b064a")))),
+                    "ostree.summary.mode",
+                    new Variant(Signature.parse("s"), "bare"),
+                    "ostree.summary.indexed-deltas",
+                    new Variant(Signature.parse("b"), true)),
+                summary.metadata().fields()));
+
     System.out.println(summary);
   }
 
@@ -106,5 +140,12 @@ class OstreeDecoderTest {
     var deltaPartPayload = decoder.decode(ByteBuffer.wrap(deltaPartPayloadBytes));
 
     System.out.println(deltaPartPayload);
+  }
+
+  private static List<Byte> bytesOfHex(String hex) {
+    var bytes = HexFormat.of().parseHex(hex);
+    var byteObjects = new Byte[bytes.length];
+    Arrays.setAll(byteObjects, i -> bytes[i]);
+    return Arrays.asList(byteObjects);
   }
 }
