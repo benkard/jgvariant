@@ -114,7 +114,7 @@ You can also run the tool directly with Maven using the `exec` profile:
           <dependency>
             <groupId>eu.mulk.jgvariant</groupId>
             <artifactId>jgvariant-bom</artifactId>
-            <version>0.1.7</version>
+            <version>0.1.8</version>
             <type>pom</type>
             <scope>import</scope>
           </dependency>
@@ -147,7 +147,7 @@ You can also run the tool directly with Maven using the `exec` profile:
     dependencies {
       ...
     
-      implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.7")
+      implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.8")
       implementation("eu.mulk.jgvariant:jgvariant-core")
       implementation("eu.mulk.jgvariant:jgvariant-ostree")
     
