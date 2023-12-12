@@ -116,7 +116,8 @@ public abstract class Decoder<T> {
   /**
    * Creates a new {@link Decoder} from an existing one by applying a function to the result.
    *
-   * @param function the function to apply.
+   * @param decodingFunction the function to apply when decoding.
+   * @param encodingFunction the function to apply when encoding.
    * @return a new, decorated {@link Decoder}.
    * @see java.util.stream.Stream#map
    */
@@ -127,7 +128,8 @@ public abstract class Decoder<T> {
   /**
    * Creates a new {@link Decoder} from an existing one by applying a function to the input.
    *
-   * @param function the function to apply.
+   * @param decodingFunction the function to apply when decoding.
+   * @param encodingFunction the function to apply when encoding.
    * @return a new, decorated {@link Decoder}.
    * @see java.util.stream.Stream#map
    */
