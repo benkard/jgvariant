@@ -13,7 +13,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
 
   <modelVersion>4.0.0</modelVersion>
 
-  <version>0.1.8</version>
+  <version>0.1.9-SNAPSHOT</version>
 
   <artifactId>jgvariant-bom</artifactId>
   <packaging>pom</packaging>
@@ -27,7 +27,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
   <parent>
     <groupId>eu.mulk.jgvariant</groupId>
     <artifactId>jgvariant-parent</artifactId>
-    <version>0.1.8</version>
+    <version>0.1.9-SNAPSHOT</version>
     <relativePath>../jgvariant-parent/pom.xml</relativePath>
   </parent>
 
