@@ -67,7 +67,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
     <native-plugin.version>0.9.28</native-plugin.version>
     <nexus-staging-plugin.version>1.6.13</nexus-staging-plugin.version>
-    <spotless-plugin.version>2.41.1</spotless-plugin.version>
+    <spotless-plugin.version>2.42.0</spotless-plugin.version>
     <surefire-plugin.version>3.2.5</surefire-plugin.version>
     <versions-plugin.version>2.16.2</versions-plugin.version>
 
