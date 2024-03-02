@@ -5,13 +5,11 @@
 /**
  * The {@code jgvariant} command line tool.
  *
- * <p>The {@link eu.mulk.jgvariant.tool} module contains a tool called
- * {@code jgvariant} that can be used to manipulate GVariant-formatted
- * files from the command line.  Its primary purpose is to enable the
- * scripting of OSTree repository management tasks.
+ * <p>The {@link eu.mulk.jgvariant.tool} module contains a tool called {@code jgvariant} that can be
+ * used to manipulate GVariant-formatted files from the command line. Its primary purpose is to
+ * enable the scripting of OSTree repository management tasks.
  *
- * <p>The {@link eu.mulk.jgvariant.tool.Main} class defines the entry point
- * of the tool.
+ * <p>The {@link eu.mulk.jgvariant.tool.Main} class defines the entry point of the tool.
  *
  * <p>Usage example (dumping the contents of an OSTree summary file):
  *

@@ -12,8 +12,8 @@ import picocli.CommandLine;
 /**
  * A command line tool to read and manipulate GVariant-formatted files.
  *
- * <p>Implements a tool called {@code jgvariant} that can be used to
- * manipulate GVariant-formatted files from the command line.
+ * <p>Implements a tool called {@code jgvariant} that can be used to manipulate GVariant-formatted
+ * files from the command line.
  *
  * <p>Also provides ways to manipulate OSTree repositories.
  *

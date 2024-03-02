@@ -58,8 +58,9 @@ public record DeltaPartPayload(
           throw new IllegalStateException(e);
         }
       }
-      default -> throw new IllegalArgumentException(
-          "unrecognized compression byte '%d'".formatted(compressionByte));
+      default ->
+          throw new IllegalArgumentException(
+              "unrecognized compression byte '%d'".formatted(compressionByte));
     };
   }
 

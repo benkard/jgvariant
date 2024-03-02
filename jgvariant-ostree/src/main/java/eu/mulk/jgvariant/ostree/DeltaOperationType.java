@@ -44,8 +44,8 @@ enum DeltaOperationType {
       case (byte) 'R' -> UNSET_READ_SOURCE;
       case (byte) 'c' -> CLOSE;
       case (byte) 'B' -> BSPATCH;
-      default -> throw new IllegalArgumentException(
-          "invalid DeltaOperation: %d".formatted(byteValue));
+      default ->
+          throw new IllegalArgumentException("invalid DeltaOperation: %d".formatted(byteValue));
     };
   }
 }

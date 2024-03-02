@@ -113,8 +113,9 @@ public final class Signature {
         List<Decoder<?>> entryTypes = parseDictionaryEntryTypes(signature);
         yield Decoder.ofDictionaryEntry(entryTypes.get(0), entryTypes.get(1));
       }
-      default -> throw new ParseException(
-          String.format("encountered unknown signature byte '%c'", c), signature.position());
+      default ->
+          throw new ParseException(
+              String.format("encountered unknown signature byte '%c'", c), signature.position());
     };
   }
 
