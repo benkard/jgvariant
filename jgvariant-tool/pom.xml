@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   <modelVersion>4.0.0</modelVersion>
 
-  <version>0.1.9</version>
+  <version>0.1.10-SNAPSHOT</version>
 
   <artifactId>jgvariant-tool</artifactId>
   <packaging>jar</packaging>
@@ -28,7 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   <parent>
     <groupId>eu.mulk.jgvariant</groupId>
     <artifactId>jgvariant-parent</artifactId>
-    <version>0.1.9</version>
+    <version>0.1.10-SNAPSHOT</version>
     <relativePath>../jgvariant-parent/pom.xml</relativePath>
   </parent>
 
@@ -37,12 +37,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <dependency>
       <groupId>eu.mulk.jgvariant</groupId>
       <artifactId>jgvariant-core</artifactId>
-      <version>0.1.9</version>
+      <version>0.1.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>eu.mulk.jgvariant</groupId>
       <artifactId>jgvariant-ostree</artifactId>
-      <version>0.1.9</version>
+      <version>0.1.10-SNAPSHOT</version>
     </dependency>
 
     <!-- Annotations -->
