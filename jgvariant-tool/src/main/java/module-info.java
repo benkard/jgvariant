@@ -55,17 +55,17 @@
  *
  * <h3>Adding a static delta to an OSTree summary file</h3>
  *
- * <p>Static delta <code>3...</code> (in hex), between commits <code>1...</code> and <code>2...
+ * <p>Superblock checksum <code>0...</code>, between commits <code>3...</code> and <code>6...
  * </code>:
  *
  * {@snippet lang="sh" :
- * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 3333333333333333333333333333333333333333333333333333333333333333 2222222222222222222222222222222222222222222222222222222222222222 1111111111111111111111111111111111111111111111111111111111111111
+ * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 03738040e28e7662e9c9d2599c530ea974e642c9f87e6c00cbaa39a0cdac8d44 66ff167ff35ce87daac817447a9490a262ee75f095f017716a6eb1a9d9eb3350 3d3b3329dca38871f29aeda1bf5854d76c707fa269759a899d0985c91815fe6f
  * }
  *
- * <p>Static delta <code>3...</code> (in hex), between the empty commit and <code>2...</code>:
+ * <p>Superblock checksum <code>f...</code>, between the empty commit and <code>3...</code>:
  *
  * {@snippet lang="sh" :
- * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 4444444444444444444444444444444444444444444444444444444444444444 2222222222222222222222222222222222222222222222222222222222222222
+ * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary f481144629474bd88c106e45ac405ebd75b324b0655af1aec14b31786ae1fd61 31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52
  * }
  */
 module eu.mulk.jgvariant.tool {

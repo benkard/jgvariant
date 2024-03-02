@@ -29,6 +29,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import picocli.AutoComplete;
 import picocli.CommandLine;
@@ -37,7 +38,7 @@ import picocli.CommandLine.*;
 @Command(
     name = "jgvariant",
     mixinStandardHelpOptions = true,
-    description = "Manipulate files in GVariant format.",
+    header = "Manipulate files in GVariant format.",
     subcommands = {MainCommand.OstreeCommand.class, AutoComplete.GenerateCompletion.class})
 final class MainCommand {
 
@@ -74,35 +75,60 @@ final class MainCommand {
   @Command(
       name = "ostree",
       mixinStandardHelpOptions = true,
-      description = "Manipulate OSTree files.",
+      header = "Manipulate OSTree files.",
       subcommands = {OstreeCommand.SummaryCommand.class})
   static final class OstreeCommand {
 
     @Command(
         name = "summary",
         mixinStandardHelpOptions = true,
-        description = "Manipulate OSTree summary files.")
+        header = "Manipulate OSTree summary files.")
     static final class SummaryCommand extends BaseDecoderCommand<Summary> {
 
-      @Command(mixinStandardHelpOptions = true)
+      @Command(
+          name = "read",
+          mixinStandardHelpOptions = true,
+          header = "Dump an OSTree summary file as human-readable JSON.")
       void read(@Parameters(paramLabel = "<file>", description = "Summary file to read") File file)
           throws IOException {
         read(file, Summary.decoder());
       }
 
-      @Command(name = "add-static-delta", mixinStandardHelpOptions = true)
+      @Command(
+          name = "add-static-delta",
+          mixinStandardHelpOptions = true,
+          header = "Add a static delta to an OSTree summary file.",
+          description =
+              """
+              Checksums can be given in either hex (64 digits) or a variant of Base64 (43
+              digits) where '/' is replaced by '_'.
+
+              In the OSTree repository, static deltas are named based on the <from> and <to>
+              checksums in modified Base64 when stored in the deltas/ directory.  The naming
+              scheme is either <from[0..1]>/<from[2..42]>-<to> if <from> is an actual commit
+              or <to[0..1]>/<to[2..42]> if <from> is the empty commit.
+
+              <superblock-csum> is the SHA256 checksum of the file called 'superblock' that
+              is part of the static delta and contains its metadata.
+              """)
       void addStaticDelta(
           @Parameters(paramLabel = "<file>", description = "Summary file to manipulate.")
               File summaryFile,
-          @Parameters(paramLabel = "<delta>", description = "Checksum of the static delta (hex).")
-              String delta,
-          @Parameters(paramLabel = "<to>", description = "Commit checksum the delta ends at (hex).")
-              String toCommit,
+          @Parameters(
+                  paramLabel = "<superblock-csum>",
+                  description = "Checksum of the static delta superblock (hex/mbase64).")
+              String deltaName,
+          @Parameters(
+                  paramLabel = "<to>",
+                  description = "Commit checksum the delta ends at (hex/mbase64).")
+              String toCommitName,
           @Parameters(
                   paramLabel = "<from>",
                   arity = "0..1",
-                  description = "Commit checksum the delta starts from (hex).")
-              String fromCommit)
+                  description =
+                      "Commit checksum the delta starts from (hex/mbase64).  Defaults to the empty commit.")
+              @Nullable
+              String fromCommitName)
           throws IOException, ParseException {
         var summaryDecoder = Summary.decoder();
 
@@ -110,6 +136,10 @@ final class MainCommand {
 
         var staticDeltaMapSignature = Signature.parse("a{sv}");
         var checksumSignature = Signature.parse("ay");
+
+        var delta = parseChecksum(deltaName);
+        var toCommit = parseChecksum(toCommitName);
+        var fromCommit = fromCommitName != null ? parseChecksum(fromCommitName) : null;
 
         var metadata = summary.metadata();
         var metadataFields = new LinkedHashMap<>(metadata.fields());
@@ -121,18 +151,14 @@ final class MainCommand {
                       ? new LinkedHashMap<>((Map<String, Variant>) v.value())
                       : new LinkedHashMap<>();
               staticDeltas.put(
-                  fromCommit != null ? fromCommit + "-" + toCommit : toCommit,
-                  new Variant(checksumSignature, toByteList(ByteString.ofHex(delta).bytes())));
+                  fromCommit != null ? fromCommit.hex() + "-" + toCommit.hex() : toCommit.hex(),
+                  new Variant(checksumSignature, toByteList(delta.bytes())));
               return new Variant(staticDeltaMapSignature, staticDeltas);
             });
         metadata = new Metadata(metadataFields);
         summary = new Summary(summary.entries(), metadata);
 
         encodeFile(summaryFile, summaryDecoder, summary);
-      }
-
-      private List<Byte> toByteList(byte[] bytes) {
-        return IntStream.range(0, bytes.length).mapToObj(i -> bytes[i]).toList();
       }
 
       SummaryCommand() {}
@@ -184,6 +210,27 @@ final class MainCommand {
       try (var out = FileChannel.open(fs().getPath(file.getPath()), StandardOpenOption.WRITE)) {
         out.write(thingBytes);
       }
+    }
+
+    protected static ByteString parseChecksum(String name) {
+      var bytes =
+          switch (name.length()) {
+            case 64 -> ByteString.ofHex(name);
+            case 43 -> ByteString.ofModifiedBase64(name);
+            default ->
+                throw new IllegalArgumentException(
+                    "Checksums must be either 64 hex digits or 43 mbase64 digits.");
+          };
+
+      if (bytes.size() != 32) {
+        throw new IllegalArgumentException("Checksums must be 32 bytes long.");
+      }
+
+      return bytes;
+    }
+
+    protected static List<Byte> toByteList(byte[] bytes) {
+      return IntStream.range(0, bytes.length).mapToObj(i -> bytes[i]).toList();
     }
   }
 
