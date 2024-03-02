@@ -50,16 +50,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
       <groupId>com.google.errorprone</groupId>
       <artifactId>error_prone_annotations</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apiguardian</groupId>
       <artifactId>apiguardian-api</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- Command line tooling -->
