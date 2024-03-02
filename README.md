@@ -47,7 +47,9 @@ be used to manipulate [GVariant][]-formatted files from the command line.
 Its primary purpose is to enable the scripting of [OSTree][] repository
 management tasks.
 
-Usage example (dumping the contents of an [OSTree][] summary file):
+### Usage examples
+
+#### Dumping the contents of an [OSTree][] summary file
 
     $ jgvariant ostree summary read ./jgvariant-ostree/src/test/resources/ostree/summary
 
@@ -83,6 +85,17 @@ Output:
         }
     }
 
+#### Adding a static delta to an [OSTree][] summary file
+
+Static delta <code>3...</code> (in hex), between commits <code>1...</code> and <code>2...</code>:
+
+    $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 3333333333333333333333333333333333333333333333333333333333333333 2222222222222222222222222222222222222222222222222222222222222222 1111111111111111111111111111111111111111111111111111111111111111
+
+Static delta <code>3...</code> (in hex), between the empty commit and <code>2...</code>:
+
+    $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 4444444444444444444444444444444444444444444444444444444444444444 2222222222222222222222222222222222222222222222222222222222222222
+
+### Building the tool
 
 You can build the tool either as a shaded JAR or as a native executable.
 

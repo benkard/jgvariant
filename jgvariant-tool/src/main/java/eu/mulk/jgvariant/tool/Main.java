@@ -17,7 +17,9 @@ import picocli.CommandLine;
  *
  * <p>Also provides ways to manipulate OSTree repositories.
  *
- * <p>Usage example (dumping the contents of an OSTree summary file):
+ * <h2>Usage Examples</h2>
+ *
+ * <h3>Dumping the contents of an OSTree summary file</h3>
  *
  * {@snippet lang="sh" :
  * $ jgvariant ostree summary read ./jgvariant-ostree/src/test/resources/ostree/summary
@@ -55,6 +57,21 @@ import picocli.CommandLine;
  *         }
  *     }
  * }
+ * }
+ *
+ * <h3>Adding a static delta to an OSTree summary file</h3>
+ *
+ * <p>Static delta <code>3...</code> (in hex), between commits <code>1...</code> and <code>2...
+ * </code>:
+ *
+ * {@snippet lang="sh" :
+ * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 3333333333333333333333333333333333333333333333333333333333333333 2222222222222222222222222222222222222222222222222222222222222222 1111111111111111111111111111111111111111111111111111111111111111
+ * }
+ *
+ * <p>Static delta <code>3...</code> (in hex), between the empty commit and <code>2...</code>:
+ *
+ * {@snippet lang="sh" :
+ * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary 4444444444444444444444444444444444444444444444444444444444444444 2222222222222222222222222222222222222222222222222222222222222222
  * }
  */
 public final class Main {
