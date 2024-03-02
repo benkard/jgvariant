@@ -53,7 +53,7 @@
  * }
  * }
  */
- module eu.mulk.jgvariant.tool {
+module eu.mulk.jgvariant.tool {
   requires transitive eu.mulk.jgvariant.ostree;
   requires info.picocli;
   requires jakarta.json;

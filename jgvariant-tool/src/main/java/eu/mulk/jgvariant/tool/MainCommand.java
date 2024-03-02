@@ -6,6 +6,7 @@ package eu.mulk.jgvariant.tool;
 
 import static java.util.logging.Level.*;
 
+import eu.mulk.jgvariant.core.Decoder;
 import eu.mulk.jgvariant.ostree.Summary;
 import eu.mulk.jgvariant.tool.jsonb.*;
 import jakarta.json.bind.Jsonb;
@@ -72,15 +73,11 @@ final class MainCommand {
         name = "summary",
         mixinStandardHelpOptions = true,
         description = "Manipulate OSTree summary files.")
-    static final class SummaryCommand extends BaseCommand {
+    static final class SummaryCommand extends BaseDecoderCommand<Summary> {
 
       @Command(mixinStandardHelpOptions = true)
       void read(@Parameters(paramLabel = "<file>") File file) throws IOException {
-        LOG.fine(() -> "Reading file %s".formatted(file));
-        var fileBytes = ByteBuffer.wrap(Files.readAllBytes(fs().getPath(file.getPath())));
-        var decoder = Summary.decoder();
-        var thing = decoder.decode(fileBytes);
-        out().println(jsonb.toJson(thing));
+        read(file, Summary.decoder());
       }
 
       SummaryCommand() {}
@@ -108,6 +105,16 @@ final class MainCommand {
 
     protected FileSystem fs() {
       return fs;
+    }
+  }
+
+  abstract static class BaseDecoderCommand<T> extends BaseCommand {
+
+    protected final void read(File file, Decoder<T> decoder) throws IOException {
+      LOG.fine(() -> "Reading file %s".formatted(file));
+      var fileBytes = ByteBuffer.wrap(Files.readAllBytes(fs().getPath(file.getPath())));
+      var thing = decoder.decode(fileBytes);
+      out().println(jsonb.toJson(thing));
     }
   }
 
