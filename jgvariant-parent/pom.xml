@@ -61,7 +61,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <flatten-plugin.version>1.6.0</flatten-plugin.version>
     <jar-plugin.version>3.4.0</jar-plugin.version>
     <jpackage-plugin.version>0.1.5</jpackage-plugin.version>
-    <maven-scm-plugin.version>2.0.1</maven-scm-plugin.version>
+    <maven-scm-plugin.version>2.1.0</maven-scm-plugin.version>
     <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version>
     <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
