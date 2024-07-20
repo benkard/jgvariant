@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+import org.jspecify.annotations.NullMarked;
+
 /**
  * {@link eu.mulk.jgvariant.core.Decoder} instances for OSTree repositories.
  *
@@ -78,6 +80,7 @@
  * }
  * }
  */
+@NullMarked
 module eu.mulk.jgvariant.ostree {
   requires transitive eu.mulk.jgvariant.core;
 
@@ -86,6 +89,7 @@ module eu.mulk.jgvariant.ostree {
   requires static com.google.errorprone.annotations;
   requires static org.apiguardian.api;
   requires static org.jetbrains.annotations;
+  requires static org.jspecify;
 
   exports eu.mulk.jgvariant.ostree;
 }

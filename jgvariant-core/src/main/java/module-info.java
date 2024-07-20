@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+import org.jspecify.annotations.NullMarked;
+
 /**
  * Provides a parser for the <a href="https://docs.gtk.org/glib/struct.Variant.html">GVariant</a>
  * serialization format.
@@ -79,10 +81,12 @@
  * }
  * }
  */
+@NullMarked
 module eu.mulk.jgvariant.core {
   requires static com.google.errorprone.annotations;
   requires static org.apiguardian.api;
   requires static org.jetbrains.annotations;
+  requires static org.jspecify;
 
   exports eu.mulk.jgvariant.core;
 }

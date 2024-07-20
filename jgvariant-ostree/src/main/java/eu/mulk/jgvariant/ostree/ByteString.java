@@ -10,7 +10,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper for a {@code byte[]} that implements {@link #equals(Object)}, {@link #hashCode()}, and

@@ -116,7 +116,9 @@
  * </dl>
  */
 @API(status = Status.EXPERIMENTAL)
+@NullMarked
 package eu.mulk.jgvariant.ostree;
 
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
+import org.jspecify.annotations.NullMarked;

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A GVariant signature string.

@@ -28,4 +28,7 @@
  * List<ExampleRecord> example = decoder.decode(ByteBuffer.wrap(bytes));
  * }
  */
+@NullMarked
 package eu.mulk.jgvariant.core;
+
+import org.jspecify.annotations.NullMarked;

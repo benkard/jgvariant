@@ -9,6 +9,8 @@
  * be used to manipulate GVariant-formatted files from the command line.
  */
 @API(status = API.Status.INTERNAL)
+@NullMarked
 package eu.mulk.jgvariant.tool;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NullMarked;

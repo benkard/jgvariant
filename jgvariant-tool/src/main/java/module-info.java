@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import org.jspecify.annotations.NullMarked;
+
 /**
  * The {@code jgvariant} command line tool.
  *
@@ -68,6 +70,7 @@
  * $ jgvariant ostree summary add-static-delta ./jgvariant-ostree/src/test/resources/ostree/summary f481144629474bd88c106e45ac405ebd75b324b0655af1aec14b31786ae1fd61 31c8835d5c9d2c6687a50091c85142d1b2d853ff416a9fb81b4ee30754510d52
  * }
  */
+@NullMarked
 module eu.mulk.jgvariant.tool {
   requires transitive eu.mulk.jgvariant.ostree;
   requires info.picocli;
@@ -77,6 +80,7 @@ module eu.mulk.jgvariant.tool {
   requires static com.google.errorprone.annotations;
   requires static org.apiguardian.api;
   requires static org.jetbrains.annotations;
+  requires static org.jspecify;
 
   opens eu.mulk.jgvariant.tool to
       info.picocli;
