@@ -38,7 +38,7 @@ import org.jspecify.annotations.NullMarked;
  *       <dependency>
  *         <groupId>eu.mulk.jgvariant</groupId>
  *         <artifactId>jgvariant-bom</artifactId>
- *         <version>0.1.8</version>
+ *         <version>0.1.10</version>
  *         <type>pom</type>
  *         <scope>import</scope>
  *       </dependency>
@@ -72,7 +72,7 @@ import org.jspecify.annotations.NullMarked;
  * dependencies {
  *   // ...
  *
- *   implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.8"))
+ *   implementation(platform("eu.mulk.jgvariant:jgvariant-bom:0.1.10"))
  *   implementation("eu.mulk.jgvariant:jgvariant-core")
  *   implementation("eu.mulk.jgvariant:jgvariant-ostree")
  *
