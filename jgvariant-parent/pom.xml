@@ -74,7 +74,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <apiguardian.version>1.1.2</apiguardian.version>
     <errorprone.version>2.35.1</errorprone.version>
     <inject-resources.version>0.3.5</inject-resources.version>
-    <jetbrains-annotations.version>25.0.0</jetbrains-annotations.version>
+    <jetbrains-annotations.version>26.0.1</jetbrains-annotations.version>
     <jqwik.version>1.9.1</jqwik.version>
     <jspecify.version>1.0.0</jspecify.version>
     <junit-jupiter.version>5.11.3</junit-jupiter.version>
