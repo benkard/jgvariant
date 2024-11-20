@@ -72,7 +72,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <versions-plugin.version>2.18.0</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
-    <errorprone.version>2.35.1</errorprone.version>
+    <errorprone.version>2.36.0</errorprone.version>
     <inject-resources.version>0.3.5</inject-resources.version>
     <jetbrains-annotations.version>26.0.1</jetbrains-annotations.version>
     <jqwik.version>1.9.1</jqwik.version>
@@ -219,6 +219,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
               <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
               <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
               <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+              <arg>--should-stop=ifError=FLOW</arg>
             </compilerArgs>
             <annotationProcessorPaths>
               <path>
