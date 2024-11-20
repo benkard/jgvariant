@@ -85,7 +85,6 @@ import org.jspecify.annotations.NullMarked;
 module eu.mulk.jgvariant.core {
   requires static com.google.errorprone.annotations;
   requires static org.apiguardian.api;
-  requires static org.jetbrains.annotations;
   requires static org.jspecify;
 
   exports eu.mulk.jgvariant.core;

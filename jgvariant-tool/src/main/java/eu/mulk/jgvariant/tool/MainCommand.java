@@ -29,7 +29,6 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import org.jetbrains.annotations.VisibleForTesting;
 import org.jspecify.annotations.Nullable;
 import picocli.AutoComplete;
 import picocli.CommandLine;
@@ -172,7 +171,7 @@ final class MainCommand {
 
     @Spec CommandLine.Model.CommandSpec spec;
 
-    @VisibleForTesting FileSystem fs = FileSystems.getDefault();
+    private final FileSystem fs = FileSystems.getDefault();
 
     protected BaseCommand() {}
 

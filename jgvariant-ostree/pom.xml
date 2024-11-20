@@ -47,11 +47,6 @@ SPDX-License-Identifier: LGPL-3.0-or-later
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.jetbrains</groupId>
-      <artifactId>annotations</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>org.jspecify</groupId>
       <artifactId>jspecify</artifactId>
       <optional>true</optional>

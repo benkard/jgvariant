@@ -88,7 +88,6 @@ module eu.mulk.jgvariant.ostree {
 
   requires static com.google.errorprone.annotations;
   requires static org.apiguardian.api;
-  requires static org.jetbrains.annotations;
   requires static org.jspecify;
 
   exports eu.mulk.jgvariant.ostree;

@@ -79,7 +79,6 @@ module eu.mulk.jgvariant.tool {
   requires java.logging;
   requires static com.google.errorprone.annotations;
   requires static org.apiguardian.api;
-  requires static org.jetbrains.annotations;
   requires static org.jspecify;
 
   opens eu.mulk.jgvariant.tool to
