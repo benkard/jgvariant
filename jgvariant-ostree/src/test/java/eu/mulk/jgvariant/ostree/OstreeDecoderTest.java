@@ -7,10 +7,10 @@ package eu.mulk.jgvariant.ostree;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.adelean.inject.resources.junit.jupiter.GivenBinaryResource;
-import com.adelean.inject.resources.junit.jupiter.TestWithResources;
 import eu.mulk.jgvariant.core.Signature;
 import eu.mulk.jgvariant.core.Variant;
+import io.hosuaby.inject.resources.junit.jupiter.GivenBinaryResource;
+import io.hosuaby.inject.resources.junit.jupiter.TestWithResources;
 import java.nio.ByteBuffer;
 import java.util.*;
 import org.junit.jupiter.api.Test;
