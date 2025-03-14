@@ -77,7 +77,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <jetbrains-annotations.version>26.0.2</jetbrains-annotations.version>
     <jqwik.version>1.9.2</jqwik.version>
     <jspecify.version>1.0.0</jspecify.version>
-    <junit-jupiter.version>5.12.0</junit-jupiter.version>
+    <junit-jupiter.version>5.12.1</junit-jupiter.version>
     <nullaway.version>0.12.4</nullaway.version>
     <parsson.version>1.1.7</parsson.version>
     <picocli.version>4.7.6</picocli.version>
