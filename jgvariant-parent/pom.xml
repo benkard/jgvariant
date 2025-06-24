@@ -72,7 +72,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <versions-plugin.version>2.18.0</versions-plugin.version>
 
     <apiguardian.version>1.1.2</apiguardian.version>
-    <errorprone.version>2.38.0</errorprone.version>
+    <errorprone.version>2.39.0</errorprone.version>
     <inject-resources.version>1.0.0</inject-resources.version>
     <jetbrains-annotations.version>26.0.2</jetbrains-annotations.version>
     <jqwik.version>1.9.3</jqwik.version>
