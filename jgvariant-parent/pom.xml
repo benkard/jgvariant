@@ -62,7 +62,7 @@ SPDX-License-Identifier: LGPL-3.0-or-later
     <jar-plugin.version>3.4.2</jar-plugin.version>
     <jpackage-plugin.version>0.1.5</jpackage-plugin.version>
     <maven-scm-plugin.version>2.1.0</maven-scm-plugin.version>
-    <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+    <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <native-plugin.version>0.10.6</native-plugin.version>
